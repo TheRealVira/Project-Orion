@@ -3,7 +3,7 @@
 [![CI](https://github.com/TheRealVira/Project-Orion/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealVira/Project-Orion/actions/workflows/ci.yml)
 [![Build and Release](https://github.com/TheRealVira/Project-Orion/actions/workflows/build-release.yml/badge.svg)](https://github.com/TheRealVira/Project-Orion/actions/workflows/build-release.yml)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/TheRealVira/Project-Orion/pkgs/container/project-orion)
-[![License](https://img.shields.io/github/license/TheRealVira/Project-Orion)](https://github.com/TheRealVira/Project-Orion/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/TheRealVira/Project-Orion/blob/main/LICENSE)
 
 A modern on-call companion dashboard for managing teams, schedules, incidents, and shadow assignments with enterprise-grade features.
 
