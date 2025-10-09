@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOAuthConfigs, generateAuthorizationURL } from '@/lib/auth-oauth';
+import { isFeatureEnabled } from '@/lib/config';
 import crypto from 'crypto';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { provider: string } }
 ) {
+  // Check if OAuth is enabled
+  if (!isFeatureEnabled('oauth')) {
+    return NextResponse.redirect(
+      new URL('/login?error=oauth_disabled', request.url)
+    );
+  }
+
   try {
     const { provider } = params;
     const configs = getOAuthConfigs();

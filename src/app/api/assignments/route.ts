@@ -96,6 +96,30 @@ export async function POST(request: NextRequest) {
     const users = db.prepare('SELECT userId FROM assignment_users WHERE assignmentId = ?').all(id) as { userId: string }[];
     const shadows = db.prepare('SELECT shadowId FROM assignment_shadows WHERE assignmentId = ?').all(id) as { shadowId: string }[];
 
+    // Send email notifications to assigned members
+    if (memberIds && Array.isArray(memberIds) && memberIds.length > 0) {
+      try {
+        const team = db.prepare('SELECT name FROM teams WHERE id = ?').get(teamId) as { name: string } | undefined;
+        const { sendCalendarAssignmentEmail } = await import('@/lib/email');
+        
+        for (const memberId of memberIds) {
+          const member = db.prepare('SELECT name, email FROM users WHERE id = ?').get(memberId) as { name: string; email: string | null } | undefined;
+          
+          if (member && member.email) {
+            await sendCalendarAssignmentEmail(member.email, member.name, {
+              assignmentId: id,
+              date,
+              teamName: team?.name || 'Unknown Team',
+              notes: notes || undefined,
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Failed to send assignment notification emails:', emailError);
+        // Don't fail the assignment creation if email fails
+      }
+    }
+
     return NextResponse.json({
       ...assignment,
       memberIds: users.map(u => u.userId),

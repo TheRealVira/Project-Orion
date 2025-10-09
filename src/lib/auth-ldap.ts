@@ -169,14 +169,15 @@ export async function authenticateLDAP(username: string, password: string): Prom
     let user = getUserByEmail(email);
 
     if (!user) {
-      // Create new user from LDAP
+      // Create new user from LDAP with viewer role by default
       user = await createUser({
         email,
         name,
+        role: 'viewer', // External LDAP users start as viewers
         authProvider: 'ldap',
         authProviderId: ldapId,
       });
-      console.log('Created new user from LDAP:', email);
+      console.log('Created new LDAP user as viewer:', email);
     } else if (user.authProvider !== 'ldap') {
       console.error('User exists with different auth provider:', email);
       return null;

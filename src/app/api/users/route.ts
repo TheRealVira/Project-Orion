@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
       phone: u.phone,
       avatarUrl: u.avatarUrl,
       role: u.role,
+      authProvider: u.authProvider,
+      authProviderId: u.authProviderId,
       userId: u.id, // Self-reference for unified system
       createdAt: new Date(u.createdAt),
       updatedAt: new Date(u.updatedAt),

@@ -1,4 +1,5 @@
 import { User } from 'lucide-react';
+import { useState } from 'react';
 
 interface AvatarProps {
   src?: string;
@@ -24,20 +25,11 @@ const iconSizes = {
 };
 
 export default function Avatar({ src, alt, size = 'md', className = '' }: AvatarProps) {
+  const [imageError, setImageError] = useState(false);
   const sizeClass = sizeClasses[size];
   const iconSize = iconSizes[size];
 
-  if (src) {
-    return (
-      <img 
-        src={src} 
-        alt={alt}
-        className={`${sizeClass} rounded-full object-cover ${className}`}
-      />
-    );
-  }
-
-  // Default avatar - colored circle with user icon
+  // Helper functions for fallback avatar
   const getInitials = (name: string) => {
     const parts = name.split(' ');
     if (parts.length >= 2) {
@@ -46,7 +38,6 @@ export default function Avatar({ src, alt, size = 'md', className = '' }: Avatar
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Generate a consistent color based on the name
   const getColorFromName = (name: string) => {
     const colors = [
       'bg-blue-500',
@@ -69,6 +60,19 @@ export default function Avatar({ src, alt, size = 'md', className = '' }: Avatar
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Show image if src exists and hasn't failed to load
+  if (src && !imageError) {
+    return (
+      <img 
+        src={src} 
+        alt={alt}
+        className={`${sizeClass} rounded-full object-cover ${className}`}
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+
+  // Default avatar - colored circle with initials
   const bgColor = getColorFromName(alt);
   const initials = getInitials(alt);
 

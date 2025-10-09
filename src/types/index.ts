@@ -8,6 +8,8 @@ export interface Member {
   phone?: string;
   avatarUrl?: string;
   role?: 'admin' | 'user' | 'viewer';
+  authProvider?: 'local' | 'oauth' | 'ldap';
+  authProviderId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

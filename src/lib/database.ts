@@ -1,8 +1,11 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { Member, Team, DateAssignment, Shadow } from '@/types';
+import config, { logger } from './config';
 
-const dbPath = path.join(process.cwd(), 'data', 'orion.db');
+const dbPath = config.databasePath.startsWith('./')
+  ? path.join(process.cwd(), config.databasePath.slice(2))
+  : config.databasePath;
 let db: Database.Database;
 
 export function getDatabase() {
@@ -32,8 +35,25 @@ function initializeDatabase() {
   // Migration: Drop deprecated members table (now using users table directly)
   try {
     db.exec(`DROP TABLE IF EXISTS members`);
+    logger.info('✅ Dropped deprecated members table');
   } catch (err) {
-    console.error('Error dropping members table:', err);
+    logger.error('Error dropping members table:', err);
+  }
+
+  // Migration: Update existing OAuth/LDAP users with 'user' role to 'viewer' role
+  try {
+    const result = db.prepare(`
+      UPDATE users 
+      SET role = 'viewer', updatedAt = datetime('now')
+      WHERE (authProvider = 'oauth' OR authProvider = 'ldap') 
+        AND role = 'user'
+    `).run();
+    
+    if (result.changes > 0) {
+      logger.info(`✅ Updated ${result.changes} external auth user(s) to viewer role`);
+    }
+  } catch (err) {
+    logger.error('Error updating external auth users:', err);
   }
 
   // Create Users table (for authentication)
@@ -253,11 +273,12 @@ export async function seedInitialData() {
     return; // Data already seeded
   }
 
-  // Create default admin user
+  // Create default admin user from config
   const bcrypt = require('bcryptjs');
+  const config = require('./config').default;
   const adminId = 'admin-default';
   const now = new Date().toISOString();
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedPassword = await bcrypt.hash(config.defaultAdmin.password, 10);
 
   const insertAdmin = db.prepare(`
     INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, createdAt, updatedAt)
@@ -266,8 +287,8 @@ export async function seedInitialData() {
 
   insertAdmin.run(
     adminId,
-    'admin@orion.local',
-    'Administrator',
+    config.defaultAdmin.email,
+    config.defaultAdmin.name,
     hashedPassword,
     null, // no phone
     'admin',
@@ -278,7 +299,7 @@ export async function seedInitialData() {
     now
   );
 
-  console.log('Database initialized with default admin user (admin@orion.local / admin123)');
+  console.log(`Database initialized with default admin user (${config.defaultAdmin.email} / ${config.defaultAdmin.password})`);
 }
 
 export default getDatabase;

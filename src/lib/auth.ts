@@ -355,19 +355,20 @@ export function deleteUser(id: string): void {
  * Seed initial admin user if no users exist
  */
 export async function seedAdminUser(): Promise<void> {
+  const config = require('./config').default;
   const db = getDatabase();
   const count = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
 
   if (count.count === 0) {
-    // Create default admin user
+    // Create default admin user from config
     await createUser({
-      email: 'admin@orion.local',
-      name: 'Administrator',
-      password: 'admin123', // Should be changed on first login
+      email: config.defaultAdmin.email,
+      name: config.defaultAdmin.name,
+      password: config.defaultAdmin.password, // Should be changed on first login
       role: 'admin',
       authProvider: 'local',
     });
 
-    console.log('✓ Default admin user created: admin@orion.local / admin123');
+    console.log(`✓ Default admin user created: ${config.defaultAdmin.email} / ${config.defaultAdmin.password}`);
   }
 }

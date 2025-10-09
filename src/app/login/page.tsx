@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, Mail, Key, Server, Github, Chrome, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, Key, Server, Github, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { GoogleIcon, MicrosoftIcon, GitLabIcon, KofiIcon } from '@/components/BrandIcons';
+import AnimatedHeart from '@/components/AnimatedHeart';
+import AnimatedSparkles from '@/components/AnimatedSparkles';
 
 interface AuthConfig {
   local: boolean;
@@ -98,7 +101,11 @@ export default function LoginPage() {
       case 'github':
         return <Github className="w-5 h-5" />;
       case 'google':
-        return <Chrome className="w-5 h-5" />;
+        return <GoogleIcon />;
+      case 'microsoft':
+        return <MicrosoftIcon />;
+      case 'gitlab':
+        return <GitLabIcon />;
       default:
         return <Key className="w-5 h-5" />;
     }
@@ -257,7 +264,7 @@ export default function LoginPage() {
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-3 h-3 text-yellow-500" />
+              <AnimatedSparkles className="w-3 h-3 text-yellow-500" animateOnHover />
               <span>Project Orion - On-Call Companion Dashboard</span>
             </div>
             
@@ -276,8 +283,8 @@ export default function LoginPage() {
               
               <span className="text-gray-400 dark:text-gray-600">•</span>
               
-              <span>
-                Built with ❤️ by{' '}
+              <span className="flex items-center gap-1">
+                Built with <AnimatedHeart /> by{' '}
                 <a 
                   href="https://vira.solutions" 
                   target="_blank" 
@@ -296,9 +303,7 @@ export default function LoginPage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 hover:opacity-80 transition-opacity"
               >
-                <svg className="w-3 h-3" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#13C3FF" d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z"/>
-                </svg>
+                <KofiIcon />
                 <span className="text-gray-600 dark:text-gray-400">Support</span>
               </a>
               

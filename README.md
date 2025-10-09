@@ -2,9 +2,29 @@
 
 A modern on-call companion dashboard for managing teams, schedules, incidents, and shadow assignments with enterprise-grade features.
 
+## 📑 Table of Contents
+
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [First Time Setup](#first-time-setup)
+  - [Quick Start Guide](#quick-start-guide)
+- [Webhook Integration](#webhook-integration)
+- [Email & SMS Notifications](#email--sms-notifications)
+- [Authentication](#authentication)
+- [Database](#database)
+- [Development](#development)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Author & Credits](#author--credits)
+- [License](#license)
+
 ## Features
 
-### � User & Team Management
+### 👥 User & Team Management
 - **User Authentication**: Secure login system with local authentication and OAuth support
 - **Role-Based Access Control**: Three user roles (Admin, User, Viewer) with granular permissions
 - **User Management**: Create and manage users with profiles, contact information, and custom avatars
@@ -34,6 +54,8 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **Notes & Timeline**: Add notes and view complete incident timeline with user attribution
 - **Webhook Integration**: Receive alerts from monitoring tools (Prometheus, Grafana, Dynatrace, Custom)
 - **Webhook Tester**: Built-in webhook testing tool (admin-only) with pre-configured templates
+- **Email Notifications**: Automatic email alerts for incident creation and assignments
+- **SMS Notifications**: Optional SMS alerts for critical incidents via Twilio (disabled by default)
 
 ### 📊 Analytics & Reporting
 - **Assignment Statistics**: View detailed assignment statistics with customizable date ranges
@@ -55,13 +77,14 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **User Attribution**: All actions are attributed to the performing user in logs and timelines
 - **Protected Routes**: Middleware-based route protection for authenticated areas
 - **Role Enforcement**: Server-side role validation for sensitive operations
+- **Multiple Auth Methods**: Local authentication, OAuth (Google, GitHub, Microsoft, GitLab), and LDAP/Active Directory
 
-### 💾 Data & Performance
-- **SQLite Database**: Production-ready SQLite database with WAL mode for better concurrency
-- **Automatic Migration**: Database schema automatically migrates and drops deprecated tables
-- **Persistent Storage**: All data persists across browser sessions with file-based storage
-- **Indexed Queries**: Optimized database indexes for fast lookups
-- **Transaction Support**: ACID-compliant transactions for data integrity
+### 💾 Database & Performance
+- **SQLite with WAL Mode**: Production-ready database with better concurrency
+- **Automatic Migrations**: Schema automatically migrates and drops deprecated tables
+- **Persistent Storage**: All data persists across sessions with file-based storage
+- **Optimized Queries**: Indexed queries for fast lookups
+- **ACID Compliance**: Transaction support for data integrity
 
 ## Getting Started
 
@@ -96,7 +119,61 @@ yarn dev
 pnpm dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Configure environment (optional):
+```bash
+cp .env.example .env
+# Edit .env to customize settings
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Configuration
+
+Project Orion works out of the box with smart defaults. Configuration is optional but allows you to customize authentication, notifications, and integrations.
+```bash
+# Copy example configuration
+cp .env.example .env
+
+# Essential settings (optional - defaults work out of the box)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+DATABASE_PATH=./orion.db
+LOG_LEVEL=info
+
+# Feature flags (most enabled by default, SMS disabled)
+ENABLE_WEBHOOKS=true
+ENABLE_EMAIL_NOTIFICATIONS=true
+ENABLE_SMS_NOTIFICATIONS=false
+ENABLE_OAUTH=true
+ENABLE_LDAP=true
+
+# Email (optional - disabled if not configured)
+SMTP_HOST=smtp.gmail.com
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# SMS (optional - disabled by default)
+# ENABLE_SMS_NOTIFICATIONS=true
+# TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# TWILIO_AUTH_TOKEN=your_auth_token
+# TWILIO_FROM_NUMBER=+1234567890
+
+# OAuth (optional - see .env.example for all providers)
+# OAUTH_GOOGLE_CLIENT_ID=your_client_id
+# OAUTH_GOOGLE_CLIENT_SECRET=your_client_secret
+
+# LDAP (optional - for Active Directory/OpenLDAP)
+# ENABLE_LDAP=true
+# LDAP_URL=ldap://ldap.company.com:389
+# LDAP_BIND_DN=cn=admin,dc=company,dc=com
+# LDAP_BIND_PASSWORD=your_password
+# LDAP_SEARCH_BASE=ou=users,dc=company,dc=com
+```
+
+**✨ Key Features:**
+- Works out of the box without any configuration
+- Features auto-disable if dependencies are missing
+- Startup warnings for production configuration issues
+- Supports multiple authentication methods simultaneously
 
 ### First Time Setup
 
@@ -107,8 +184,16 @@ On first run, the application will:
 4. Create a default admin user
 
 **Default Admin Credentials:**
-- Email: `admin@example.com`
-- Password: `admin123` (change this immediately!)
+- Email: `admin@orion.local` (configurable via `DEFAULT_ADMIN_EMAIL`)
+- Password: `admin123` (configurable via `DEFAULT_ADMIN_PASSWORD`)
+- **⚠️ Change these immediately in production!**
+
+You can customize the default admin user by setting these environment variables in your `.env` file:
+```env
+DEFAULT_ADMIN_EMAIL=admin@orion.local
+DEFAULT_ADMIN_NAME=Administrator
+DEFAULT_ADMIN_PASSWORD=admin123
+```
 
 ### Quick Start Guide
 
@@ -120,106 +205,26 @@ On first run, the application will:
 6. **Setup Shadows**: Use "Shadows" tab to pair experienced members with new ones
 7. **View Analytics**: Check "Analytics" tab for workload distribution insights
 
-## Project Structure
-
-```
-Project-Orion/
-├── src/
-│   ├── app/                          # Next.js app directory
-│   │   ├── api/                      # API routes
-│   │   │   ├── auth/                 # Authentication endpoints
-│   │   │   ├── incidents/            # Incident management API
-│   │   │   ├── teams/                # Team CRUD operations
-│   │   │   ├── users/                # User management API
-│   │   │   └── webhooks/             # Webhook receivers
-│   │   ├── login/                    # Login page
-│   │   ├── layout.tsx                # Root layout with auth provider
-│   │   ├── page.tsx                  # Main dashboard
-│   │   └── globals.css               # Global styles with Tailwind
-│   ├── components/                   # React components
-│   │   ├── CalendarView.tsx          # Weekly calendar with assignments
-│   │   ├── IncidentList.tsx          # Incident management UI
-│   │   ├── IncidentDetail.tsx        # Incident detail modal with notes
-│   │   ├── UserList.tsx              # User management (formerly MemberList)
-│   │   ├── TeamList.tsx              # Team management with owners
-│   │   ├── ShadowList.tsx            # Shadow assignment management
-│   │   ├── AnalyticsView.tsx         # Statistics and reporting
-│   │   ├── AssignmentFormModal.tsx   # Assignment creation/edit form
-│   │   ├── ShadowFormModal.tsx       # Shadow assignment form
-│   │   ├── WebhookTesterModal.tsx    # Webhook testing interface
-│   │   ├── UserProfile.tsx           # User dropdown menu
-│   │   ├── Avatar.tsx                # Avatar component with fallback
-│   │   └── ...                       # Additional UI components
-│   ├── contexts/                     # React contexts
-│   │   └── AuthContext.tsx           # Authentication context provider
-│   ├── lib/                          # Business logic & utilities
-│   │   ├── auth.ts                   # Authentication functions
-│   │   ├── database.ts               # SQLite database initialization
-│   │   ├── services.ts               # Data service layer
-│   │   ├── permissions.ts            # Permission checking functions
-│   │   └── email.ts                  # Email notification utilities
-│   └── types/                        # TypeScript definitions
-│       └── index.ts                  # Core data models and interfaces
-├── data/                             # Database storage
-│   └── orion.db                      # SQLite database file
-├── public/                           # Static assets
-│   └── favicon.svg                   # Sparkle favicon (yellow)
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── next.config.js
-└── middleware.ts                     # Route protection middleware
-```
-
-## Core Concepts
-
-### Data Models
-
-- **User**: System users with authentication credentials, roles (admin/user/viewer), and profile information
-- **Team**: Groups of users organized by function or domain with team owners and custom colors
-- **DateAssignment**: Scheduling data linking teams and users to specific dates with notes
-- **Shadow**: Mentorship relationships where one user shadows another for training with date ranges
-- **Incident**: Issue tracking with severity levels, status workflow, team assignment, and timeline
-
-### User Roles & Permissions
-
-- **Admin**: Full system access - manage all users, teams, assignments, and incidents
-- **User**: Standard access - manage own profile, create assignments and incidents, view all data
-- **Viewer**: Read-only access - view all data but cannot create or modify anything
-
-### Key Components
-
-- **CalendarView**: Interactive weekly calendar grid showing on-call assignments per day
-- **IncidentList**: Card-based incident tracking with filtering, search, and webhook testing
-- **UserList**: User management interface with role badges and permission-based actions
-- **TeamList**: Team overview with members, owners, and expansion panels
-- **ShadowList**: Shadow assignment management with search and duplicate detection
-- **AnalyticsView**: Statistical analysis with charts and CSV export capabilities
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
-
-### Tech Stack
-
-- **Framework**: Next.js 14 (App Router) with React 18
-- **Language**: TypeScript 5+ with strict mode
-- **Database**: SQLite with better-sqlite3 (WAL mode)
-- **Authentication**: Session-based with bcrypt password hashing
-- **Styling**: Tailwind CSS 3+ with dark mode support
-- **Icons**: Lucide React (600+ icons)
-- **Date Utilities**: date-fns for date manipulation and formatting
-- **HTTP Client**: Native fetch API with Next.js enhancements
-
 ## Webhook Integration
 
 Project Orion supports webhook integrations from popular monitoring tools. Admins can use the built-in webhook tester to send test alerts.
+
+### Configuration
+
+**Enable Webhooks:**
+```bash
+ENABLE_WEBHOOKS=true  # Enabled by default
+```
+
+**Secure Webhooks (Optional):**
+```bash
+# Set a webhook secret for signature verification
+WEBHOOK_SECRET=your-random-secret-key
+
+# Webhooks must include these headers:
+# x-webhook-signature: HMAC-SHA256(timestamp + body)
+# x-webhook-timestamp: Unix timestamp in milliseconds
+```
 
 ### Supported Formats
 
@@ -233,6 +238,8 @@ Project Orion supports webhook integrations from popular monitoring tools. Admin
 ```
 POST http://localhost:3000/api/webhooks/alerts
 Content-Type: application/json
+x-webhook-signature: <signature>  # Optional, required if WEBHOOK_SECRET set
+x-webhook-timestamp: <timestamp>  # Optional, required if WEBHOOK_SECRET set
 ```
 
 ### Example Payload (Prometheus)
@@ -245,7 +252,8 @@ Content-Type: application/json
       "labels": {
         "alertname": "HighCPUUsage",
         "severity": "critical",
-        "instance": "server-01"
+        "instance": "server-01",
+        "team": "Product A"
       },
       "annotations": {
         "summary": "CPU usage above 90%",
@@ -257,75 +265,241 @@ Content-Type: application/json
 }
 ```
 
-The webhook will automatically create incidents with appropriate severity mapping and team assignment based on configured rules.
+### Smart Team & Member Assignment
 
-## Data Persistence
+Webhooks use intelligent cascading logic to assign incidents:
 
-Project Orion uses SQLite with WAL mode for production-ready local data persistence. All data is stored in `data/orion.db` and persists across sessions. The database is automatically created and initialized with sample data on first run.
+**Team Assignment:**
+1. **Tag Matching**: Matches alert tags/labels to team names (case-insensitive)
+   - Example: `team: "product a"` → Matches "Product A" team
+   - Checks: `team`, `service`, `product`, `component`, `app`, `application` fields
+2. **On-Call Schedule**: Uses today's on-call team if no tag match
+3. **First Available**: Assigns to first available team if no one is on-call
 
-### Database Schema
+**Member Assignment (within matched team):**
+1. **Today's On-Call**: Assigns to member on-call today for that team
+2. **Team Owner**: Assigns to team owner if no one is on-call
+3. **Any Team Member**: Assigns to first team member if no owner
+4. **Team Only**: Assigns to team without specific member if team is empty
 
-#### Core Tables
-- **users**: User authentication, profiles, roles (admin/user/viewer), and contact information
-- **sessions**: Session management for authentication with secure tokens
-- **teams**: Team definitions with names, descriptions, colors, and timestamps
-- **team_owners**: Junction table linking teams to their owner users
-- **team_members**: Junction table for team memberships
-- **date_assignments**: On-call schedule assignments with dates, teams, and notes
-- **assignment_users**: Junction table for assignment-user relationships
-- **shadows**: Shadow assignments with primary/shadow user pairs and date ranges
-- **incidents**: Issue tracking with severity, status, team assignment, and metadata
-- **incident_notes**: Timeline notes for incidents with user attribution
+This ensures alerts are never lost and always reach the right people! 🎯
 
-#### Deprecated Tables
-- **members**: Deprecated - migrated to `users` table (automatically dropped on initialization)
+## Email & SMS Notifications
 
-### Authentication & Security
+### Email Notifications
 
-- **Session Tokens**: Secure session-based authentication using HTTP-only cookies
-- **Password Hashing**: Bcrypt-based password hashing for local authentication
-- **OAuth Support**: Framework for OAuth providers (Google, GitHub) - ready for implementation
-- **CSRF Protection**: Built-in protection against cross-site request forgery
-- **Middleware Protection**: Route-level authentication enforcement
+Project Orion sends beautiful HTML email notifications for important events:
+
+**Supported Events:**
+- 🚨 **Incident Created** (via webhook) - Notifies assigned team/member
+- 👤 **Incident Assigned** (manual) - Notifies newly assigned member
+- 📅 **Calendar Assignment** (new) - Notifies assigned members of new on-call duty
+- ✏️ **Calendar Assignment** (updated) - Notifies members of schedule changes
+- 🗑️ **Calendar Assignment** (removed) - Notifies members when removed from schedule
+
+**Configuration:**
+```bash
+# SMTP Settings
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# From Address
+FROM_EMAIL=orion@example.com
+FROM_NAME=Project Orion
+
+# Enable/Disable
+ENABLE_EMAIL_NOTIFICATIONS=true
+```
+
+**Email Features:**
+- ✨ Beautiful HTML templates with gradient headers
+- 🎨 Severity-based color coding for incidents
+- 📱 Mobile-responsive design
+- 🔗 Branded footer with Ko-fi, GitHub, and license links
+- ⚡ Non-blocking: email failures don't prevent operations
+
+### SMS Notifications
+
+SMS notifications provide urgent alerts for critical incidents via Twilio.
+
+**Configuration (Disabled by Default):**
+```bash
+# Enable SMS
+ENABLE_SMS_NOTIFICATIONS=true
+
+# Twilio Settings
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_FROM_NUMBER=+1234567890
+SMS_PROVIDER=twilio
+```
+
+**Setup Instructions:**
+1. Sign up at [twilio.com](https://www.twilio.com/)
+2. Go to Console → Account Info
+3. Copy your Account SID and Auth Token
+4. Purchase a phone number or use trial number
+5. Add credentials to your `.env` file
+6. Set `ENABLE_SMS_NOTIFICATIONS=true`
+
+**SMS Features:**
+- 📱 Concise messages optimized for SMS (< 160 characters)
+- 🎯 Severity-based emoji indicators (🔴 critical, 🟠 high, etc.)
+- 🔗 Direct links to incident details
+- ⚙️ Support for multiple providers (Twilio, Vonage, AWS SNS)
+- 🚫 Disabled by default - opt-in only
+- ⚡ Non-blocking: SMS failures don't prevent operations
+
+**Supported Events:**
+- 🚨 Critical incident creation (webhook alerts)
+- 👤 Incident assignment to member
+- 📅 On-call duty assignments
+
+**Note**: Twilio trial accounts can only send to verified phone numbers. Upgrade to production for unrestricted sending.
+
+## Authentication
+
+Project Orion supports multiple authentication methods that can be enabled simultaneously:
+
+### 🔑 Local Authentication
+- Username/password with bcrypt hashing
+- Always enabled by default
+- Admin credentials configurable via environment variables
+
+### 🌐 OAuth Providers
+Supported OAuth providers (configure via environment variables):
+- **Google**: Google Workspace and Gmail accounts
+- **GitHub**: GitHub user accounts
+- **Microsoft**: Azure AD and Microsoft accounts
+- **GitLab**: GitLab.com and self-hosted instances
+- **Custom OIDC**: Any OpenID Connect compatible provider
+
+### 🏢 LDAP/Active Directory
+Enterprise directory authentication:
+- **Active Directory**: Microsoft AD with sAMAccountName
+- **OpenLDAP**: Standard LDAP with uid
+- Auto-creates users as 'viewer' role on first login
+- Configurable attribute mapping
+
+**LDAP Configuration:**
+```bash
+ENABLE_LDAP=true
+LDAP_URL=ldap://ad.company.com:389
+LDAP_BIND_DN=CN=Service Account,DC=company,DC=com
+LDAP_BIND_PASSWORD=your_password
+LDAP_SEARCH_BASE=DC=company,DC=com
+LDAP_SEARCH_FILTER=(sAMAccountAccount={{username}})
+```
+
+### User Roles
+- **Admin**: Full system access - manage users, teams, all assignments and incidents
+- **User**: Standard access - create/manage own assignments, incidents, and shadows
+- **Viewer**: Read-only - view all data but cannot create or modify
+
+## Database
+
+Project Orion uses SQLite with WAL mode for production-ready data persistence. The database is automatically created and initialized on first run.
+
+### Core Tables
+- **users**: Authentication, profiles, roles, and contact information
+- **sessions**: Session tokens for authentication
+- **teams**: Team definitions with colors and descriptions
+- **team_owners** & **team_members**: Team relationships
+- **date_assignments** & **assignment_users**: On-call schedule data
+- **shadows**: Mentorship/training assignments
+- **incidents** & **incident_notes**: Issue tracking with timeline
+
+### Security Features
+- **HTTP-only cookies**: Secure session tokens
+- **Bcrypt hashing**: Password encryption
+- **CSRF protection**: Built-in request forgery prevention
+- **Webhook signatures**: HMAC-SHA256 verification (optional)
+- **Route protection**: Middleware-based authentication enforcement
+
+## Development
+
+### Tech Stack
+- **Framework**: Next.js 14 (App Router) with React 18 and TypeScript 5+
+- **Database**: SQLite with better-sqlite3 (WAL mode)
+- **Styling**: Tailwind CSS 3+ with dark mode support
+- **Icons**: Lucide React
+- **Authentication**: bcrypt, OAuth, LDAP (ldapjs)
+- **Notifications**: nodemailer (email), Twilio (SMS)
+- **Utilities**: date-fns for date handling
+
+### Available Scripts
+```bash
+npm run dev         # Start development server
+npm run build       # Build for production
+npm start           # Start production server
+npm run lint        # Run ESLint
+npm run type-check  # TypeScript type checking
+```
+
+### Project Structure
+```
+src/
+├── app/              # Next.js pages and API routes
+├── components/       # React components
+├── contexts/         # React contexts (Auth)
+├── lib/              # Business logic (auth, database, email, sms)
+└── types/            # TypeScript definitions
+```
 
 ## Roadmap
 
-### Completed ✅
-- [x] User authentication with session management
-- [x] Role-based access control (Admin, User, Viewer)
-- [x] User and team management with CRUD operations
-- [x] Calendar-based assignment scheduling
-- [x] Shadow assignment system for mentorship tracking
-- [x] Incident management with status workflow
-- [x] Webhook integration for monitoring tools
-- [x] Notes and timeline for incidents with user attribution
-- [x] Analytics dashboard with statistics and CSV export
-- [x] SQLite database with automatic migration
-- [x] Mobile responsive design with dark mode
-- [x] Search functionality across all entities
-- [x] Profile avatars with auto-generated fallbacks
-- [x] Permission system with server-side validation
-- [x] Auto-assignment when starting incidents
-- [x] Duplicate detection for assignments and shadows
-- [x] Team switching within edit modals
+### ✅ Completed Features
+- **Core Functionality**
+  - User authentication (local, OAuth, LDAP) with role-based access control
+  - Team management with owners and member assignments
+  - Calendar-based on-call scheduling with duplicate detection
+  - Shadow assignment system for mentorship/training
+  - Incident management with status workflow and auto-assignment
+  - Analytics dashboard with CSV export and weekday breakdown
 
-### In Progress 🚧
-- [ ] OAuth integration (Google, GitHub)
-- [ ] Email notifications for incidents and assignments
-- [ ] LDAP authentication support
+- **Integrations**
+  - Webhook support for Prometheus, Grafana, Dynatrace, and custom alerts
+  - Smart incident assignment with tag matching and cascading fallback
+  - Email notifications for all incidents and calendar assignments
+  - SMS notifications via Twilio (optional, disabled by default)
+  - OAuth providers: Google, GitHub, Microsoft, GitLab, Custom OIDC
+  - LDAP/Active Directory authentication
 
-### Planned 📋
-- [ ] Export schedule to calendar formats (iCal, Google Calendar)
-- [ ] SMS notifications for critical incidents
-- [ ] Mobile app (React Native)
-- [ ] Incident escalation workflows
-- [ ] On-call rotation templates
-- [ ] Shift swap requests and approvals
-- [ ] Integration with Slack/Teams
-- [ ] Advanced reporting and dashboards
-- [ ] Multi-tenant support
-- [ ] Audit logging
-- [ ] Multi-language support (i18n)
+- **User Experience**
+  - Mobile responsive design with dark mode
+  - Search functionality across all entities
+  - Profile avatars with auto-generated fallbacks
+  - Permission system with server-side validation
+  - Timeline and notes for incident tracking
+
+### 📋 Planned Features
+- **Scheduling Enhancements**
+  - Export to calendar formats (iCal, Google Calendar)
+  - On-call rotation templates and auto-scheduling
+  - Shift swap requests and approvals
+
+- **Incident Management**
+  - Escalation workflows and policies
+  - SLA tracking and reporting
+  - Incident templates
+
+- **Integrations**
+  - Slack/Microsoft Teams notifications
+  - PagerDuty integration
+  - Jira/GitHub issue linking
+
+- **Enterprise Features**
+  - Multi-tenant support
+  - Audit logging
+  - Advanced reporting and custom dashboards
+  - Multi-language support (i18n)
+
+- **Mobile**
+  - Native mobile app (React Native)
+  - Push notifications
 
 ## Contributing
 

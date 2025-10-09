@@ -1,4 +1,5 @@
 import { createUser, getUserByEmail, User } from './auth';
+import appConfig from './config';
 
 export interface OAuthConfig {
   provider: string;
@@ -34,7 +35,7 @@ export function getOAuthConfigs(): Map<string, OAuthConfig> {
       tokenURL: 'https://github.com/login/oauth/access_token',
       userInfoURL: 'https://api.github.com/user',
       scope: 'user:email',
-      redirectURI: process.env.OAUTH_GITHUB_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
+      redirectURI: process.env.OAUTH_GITHUB_REDIRECT_URI || `${appConfig.nextAuthUrl}/api/auth/callback/github`,
     });
   }
 
@@ -48,7 +49,7 @@ export function getOAuthConfigs(): Map<string, OAuthConfig> {
       tokenURL: 'https://oauth2.googleapis.com/token',
       userInfoURL: 'https://www.googleapis.com/oauth2/v2/userinfo',
       scope: 'openid email profile',
-      redirectURI: process.env.OAUTH_GOOGLE_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+      redirectURI: process.env.OAUTH_GOOGLE_REDIRECT_URI || `${appConfig.nextAuthUrl}/api/auth/callback/google`,
     });
   }
 
@@ -63,7 +64,7 @@ export function getOAuthConfigs(): Map<string, OAuthConfig> {
       tokenURL: `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,
       userInfoURL: 'https://graph.microsoft.com/v1.0/me',
       scope: 'openid email profile',
-      redirectURI: process.env.OAUTH_MICROSOFT_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/callback/microsoft`,
+      redirectURI: process.env.OAUTH_MICROSOFT_REDIRECT_URI || `${appConfig.nextAuthUrl}/api/auth/callback/microsoft`,
     });
   }
 
@@ -78,7 +79,7 @@ export function getOAuthConfigs(): Map<string, OAuthConfig> {
       tokenURL: `${gitlabUrl}/oauth/token`,
       userInfoURL: `${gitlabUrl}/api/v4/user`,
       scope: 'read_user',
-      redirectURI: process.env.OAUTH_GITLAB_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/callback/gitlab`,
+      redirectURI: process.env.OAUTH_GITLAB_REDIRECT_URI || `${appConfig.nextAuthUrl}/api/auth/callback/gitlab`,
     });
   }
 
@@ -88,11 +89,11 @@ export function getOAuthConfigs(): Map<string, OAuthConfig> {
       provider: 'custom',
       clientId: process.env.OAUTH_CUSTOM_CLIENT_ID,
       clientSecret: process.env.OAUTH_CUSTOM_CLIENT_SECRET,
-      authorizationURL: process.env.OAUTH_CUSTOM_AUTH_URL || '',
+      authorizationURL: process.env.OAUTH_CUSTOM_AUTHORIZATION_URL || '',
       tokenURL: process.env.OAUTH_CUSTOM_TOKEN_URL || '',
-      userInfoURL: process.env.OAUTH_CUSTOM_USERINFO_URL || '',
+      userInfoURL: process.env.OAUTH_CUSTOM_USER_INFO_URL || '',
       scope: process.env.OAUTH_CUSTOM_SCOPE || 'openid email profile',
-      redirectURI: process.env.OAUTH_CUSTOM_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/callback/custom`,
+      redirectURI: process.env.OAUTH_CUSTOM_REDIRECT_URI || `${appConfig.nextAuthUrl}/api/auth/callback/custom`,
     });
   }
 
@@ -241,15 +242,16 @@ export async function handleOAuthCallback(
     let user = getUserByEmail(userInfo.email);
 
     if (!user) {
-      // Create new user from OAuth
+      // Create new user from OAuth with viewer role by default
       user = await createUser({
         email: userInfo.email,
         name: userInfo.name,
+        role: 'viewer', // External OAuth users start as viewers
         authProvider: 'oauth',
         authProviderId: `${provider}:${userInfo.id}`,
         avatarUrl: userInfo.avatarUrl,
       });
-      console.log('Created new user from OAuth:', userInfo.email);
+      console.log('Created new OAuth user as viewer:', userInfo.email);
     } else if (user.authProvider !== 'oauth') {
       console.error('User exists with different auth provider:', userInfo.email);
       return null;

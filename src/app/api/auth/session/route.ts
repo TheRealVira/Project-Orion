@@ -22,8 +22,15 @@ export async function GET(request: NextRequest) {
         id: session.user.id,
         email: session.user.email,
         name: session.user.name,
+        phone: session.user.phone,
         role: session.user.role,
+        authProvider: session.user.authProvider,
+        authProviderId: session.user.authProviderId,
         avatarUrl: session.user.avatarUrl,
+        isActive: session.user.isActive,
+        lastLoginAt: session.user.lastLoginAt,
+        createdAt: session.user.createdAt,
+        updatedAt: session.user.updatedAt,
       },
     });
   } catch (error) {

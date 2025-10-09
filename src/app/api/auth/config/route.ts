@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAvailableOAuthProviders } from '@/lib/auth-oauth';
 import { getLDAPConfig } from '@/lib/auth-ldap';
+import { isFeatureEnabled } from '@/lib/config';
 
 export async function GET(request: NextRequest) {
   try {
-    const oauthProviders = getAvailableOAuthProviders();
-    const ldapEnabled = getLDAPConfig() !== null;
+    const oauthProviders = isFeatureEnabled('oauth') ? getAvailableOAuthProviders() : [];
+    const ldapEnabled = isFeatureEnabled('ldap') && getLDAPConfig() !== null;
 
     return NextResponse.json({
       local: true, // Built-in authentication always available

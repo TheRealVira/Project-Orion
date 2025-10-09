@@ -15,6 +15,7 @@ const alertTemplates = {
             severity: 'critical',
             instance: 'server-01',
             job: 'node-exporter',
+            team: 'Operations',
           },
           annotations: {
             summary: 'High CPU usage detected',
@@ -35,7 +36,7 @@ const alertTemplates = {
       ruleId: 1,
       ruleName: 'Disk Space Monitor',
       ruleUrl: 'https://grafana.example.com/d/disk-dashboard',
-      tags: ['infrastructure', 'disk', 'critical'],
+      tags: ['Product A', 'infrastructure', 'disk', 'critical'],
     },
   },
   dynatrace: {
@@ -49,7 +50,7 @@ const alertTemplates = {
       ProblemSeverity: 'ERROR',
       ImpactLevel: 'SERVICE',
       AffectedEntities: ['SERVICE-001', 'HOST-002'],
-      Tags: ['production', 'api', 'performance'],
+      Tags: ['Product B', 'production', 'api', 'performance'],
     },
   },
   generic: {
@@ -59,6 +60,7 @@ const alertTemplates = {
       title: 'Database Connection Pool Exhausted',
       description: 'All database connections are in use. New requests are being queued.',
       severity: 'high',
+      team: 'Product A',
       tags: ['database', 'connection-pool'],
     },
   },

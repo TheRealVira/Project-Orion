@@ -118,26 +118,43 @@ export async function PUT(
         values.push(now);
         statusChangeNote = '🔵 Incident started - Status changed to In Progress';
         
-        // Auto-assign to current user if not already assigned
-        if (!currentAssignedTo && currentUserId) {
+        // Always assign to current user who started the work (overwrite any existing assignment)
+        if (currentUserId) {
+          // Check if assignment is changing
+          const isReassignment = currentAssignedTo && currentAssignedTo !== currentUserId;
+          
           updates.push('assignedToId = ?');
           values.push(currentUserId);
+          
           const currentUserData = db.prepare('SELECT name FROM users WHERE id = ?').get(currentUserId) as any;
           if (currentUserData) {
-            statusChangeNote += `\n👤 Auto-assigned to ${currentUserData.name}`;
+            if (isReassignment) {
+              const previousUserData = db.prepare('SELECT name FROM users WHERE id = ?').get(currentAssignedTo) as any;
+              statusChangeNote += `\n👤 Reassigned from ${previousUserData?.name || 'Unknown'} to ${currentUserData.name} (started work)`;
+            } else if (!currentAssignedTo) {
+              statusChangeNote += `\n👤 Auto-assigned to ${currentUserData.name}`;
+            }
           }
         }
       } else if (status === 'in_progress' && oldStatus === 'closed') {
         // Reopening from closed
-        statusChangeNote = '� Incident reopened - Status changed to In Progress';
+        statusChangeNote = '🔄 Incident reopened - Status changed to In Progress';
         
-        // Auto-assign to current user if not already assigned
-        if (!currentAssignedTo && currentUserId) {
+        // Always assign to current user who reopened the incident (overwrite any existing assignment)
+        if (currentUserId) {
+          const isReassignment = currentAssignedTo && currentAssignedTo !== currentUserId;
+          
           updates.push('assignedToId = ?');
           values.push(currentUserId);
+          
           const currentUserData = db.prepare('SELECT name FROM users WHERE id = ?').get(currentUserId) as any;
           if (currentUserData) {
-            statusChangeNote += `\n👤 Auto-assigned to ${currentUserData.name}`;
+            if (isReassignment) {
+              const previousUserData = db.prepare('SELECT name FROM users WHERE id = ?').get(currentAssignedTo) as any;
+              statusChangeNote += `\n👤 Reassigned from ${previousUserData?.name || 'Unknown'} to ${currentUserData.name} (started work)`;
+            } else if (!currentAssignedTo) {
+              statusChangeNote += `\n👤 Auto-assigned to ${currentUserData.name}`;
+            }
           }
         }
       } else if (status === 'new' && oldStatus === 'closed') {

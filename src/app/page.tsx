@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
-import { Calendar, Users, UserPlus, Eye, BarChart3, Sparkles, Bell } from 'lucide-react';
+import { Calendar, Users, UserPlus, Eye, BarChart3, Bell } from 'lucide-react';
 import { DateAssignmentView, Member, Team, DateAssignment, Shadow } from '@/types';
+import { KofiIcon } from '@/components/BrandIcons';
+import AnimatedHeart from '@/components/AnimatedHeart';
+import AnimatedSparkles from '@/components/AnimatedSparkles';
 import { 
   memberService, 
   teamService, 
@@ -22,10 +25,26 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const { user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents'>('calendar');
+  
+  // Initialize activeTab from localStorage or default to 'calendar'
+  const [activeTab, setActiveTab] = useState<'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('activeTab');
+      if (saved && ['calendar', 'members', 'teams', 'shadows', 'analytics', 'incidents'].includes(saved)) {
+        return saved as 'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents';
+      }
+    }
+    return 'calendar';
+  });
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  
+  // Save activeTab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
   
   const [members, setMembers] = useState<Member[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -308,7 +327,7 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
-          <Sparkles className="w-16 h-16 text-yellow-500 animate-pulse mx-auto mb-4" />
+          <AnimatedSparkles className="w-16 h-16 text-yellow-500 animate-pulse mx-auto mb-4" clickable={false} animateOnHover />
           <p className="text-lg text-gray-600 dark:text-gray-400">Loading Project Orion...</p>
         </div>
       </div>
@@ -322,7 +341,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
+              <AnimatedSparkles className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
                 Project Orion
               </h1>
@@ -480,7 +499,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <Sparkles className="w-4 h-4 text-yellow-500" />
+              <AnimatedSparkles className="w-4 h-4 text-yellow-500" animateOnHover />
               <span>Project Orion - On-Call Companion Dashboard</span>
             </div>
             
@@ -499,8 +518,8 @@ export default function Home() {
               
               <span className="hidden sm:inline text-gray-400 dark:text-gray-600">•</span>
               
-              <span>
-                Built with ❤️ by{' '}
+              <span className="flex items-center gap-1.5">
+                Built with <AnimatedHeart /> by{' '}
                 <a 
                   href="https://vira.solutions" 
                   target="_blank" 
@@ -519,9 +538,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#13C3FF" d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z"/>
-                </svg>
+                <KofiIcon />
                 <span>Support</span>
               </a>
               

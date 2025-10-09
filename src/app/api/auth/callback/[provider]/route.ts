@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOAuthConfigs, handleOAuthCallback } from '@/lib/auth-oauth';
 import { createSession } from '@/lib/auth';
+import appConfig, { isFeatureEnabled } from '@/lib/config';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { provider: string } }
 ) {
+  // Check if OAuth is enabled
+  if (!isFeatureEnabled('oauth')) {
+    return NextResponse.redirect(
+      `${appConfig.nextAuthUrl}/login?error=oauth_disabled`
+    );
+  }
+
   try {
     const { provider } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -16,14 +24,14 @@ export async function GET(
     // Check for OAuth error
     if (error) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=${encodeURIComponent(error)}`
+        `${appConfig.nextAuthUrl}/login?error=${encodeURIComponent(error)}`
       );
     }
 
     // Verify code and state
     if (!code || !state) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=missing_parameters`
+        `${appConfig.nextAuthUrl}/login?error=missing_parameters`
       );
     }
 
@@ -31,26 +39,26 @@ export async function GET(
     const storedState = request.cookies.get('oauth_state')?.value;
     if (!storedState || storedState !== state) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=invalid_state`
+        `${appConfig.nextAuthUrl}/login?error=invalid_state`
       );
     }
 
     // Get OAuth config
     const configs = getOAuthConfigs();
-    const config = configs.get(provider);
+    const oauthConfig = configs.get(provider);
 
-    if (!config) {
+    if (!oauthConfig) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=provider_not_configured`
+        `${appConfig.nextAuthUrl}/login?error=provider_not_configured`
       );
     }
 
     // Handle OAuth callback
-    const user = await handleOAuthCallback(provider, code, config);
+    const user = await handleOAuthCallback(provider, code, oauthConfig);
 
     if (!user) {
       return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL}/login?error=authentication_failed`
+        `${appConfig.nextAuthUrl}/login?error=authentication_failed`
       );
     }
 
@@ -58,13 +66,13 @@ export async function GET(
     const session = createSession(user.id);
 
     // Redirect to home with session cookie
-    const response = NextResponse.redirect(process.env.NEXTAUTH_URL || 'http://localhost:3000');
+    const response = NextResponse.redirect(appConfig.nextAuthUrl);
     
     response.cookies.set('session_token', session.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: appConfig.isProduction,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: appConfig.sessionMaxAge,
       path: '/',
     });
 
@@ -75,7 +83,7 @@ export async function GET(
   } catch (error) {
     console.error('OAuth callback error:', error);
     return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/login?error=internal_error`
+      `${appConfig.nextAuthUrl}/login?error=internal_error`
     );
   }
 }

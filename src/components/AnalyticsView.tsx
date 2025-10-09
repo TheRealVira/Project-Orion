@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Member, Team, DateAssignmentView } from '@/types';
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO, getDay } from 'date-fns';
 import { BarChart3, Calendar, TrendingUp, Award, Filter, X, Download } from 'lucide-react';
 import Avatar from './Avatar';
 
@@ -202,8 +202,12 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
     // Count assignments per member
     const memberCounts = new Map<string, number>();
     const memberTeamCounts = new Map<string, Map<string, number>>();
+    const memberWeekdayCounts = new Map<string, number[]>(); // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
     
     filteredAssignments.forEach(assignment => {
+      const assignmentDate = parseISO(assignment.date);
+      const dayOfWeek = getDay(assignmentDate); // 0 (Sunday) to 6 (Saturday)
+      
       assignment.members.forEach(member => {
         // Total count
         memberCounts.set(member.id, (memberCounts.get(member.id) || 0) + 1);
@@ -215,6 +219,13 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
         const teamCounts = memberTeamCounts.get(member.id)!;
         const teamName = assignment.team?.name || 'No Team';
         teamCounts.set(teamName, (teamCounts.get(teamName) || 0) + 1);
+        
+        // Weekday count
+        if (!memberWeekdayCounts.has(member.id)) {
+          memberWeekdayCounts.set(member.id, [0, 0, 0, 0, 0, 0, 0]);
+        }
+        const weekdayCounts = memberWeekdayCounts.get(member.id)!;
+        weekdayCounts[dayOfWeek] += 1;
       });
     });
 
@@ -259,6 +270,7 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
       const assignmentCount = memberCounts.get(member.id) || 0;
       const teamCounts = memberTeamCounts.get(member.id);
       const shadowStats = shadowCounts.get(member.id) || { asMentor: 0, asLearner: 0 };
+      const weekdayCounts = memberWeekdayCounts.get(member.id) || [0, 0, 0, 0, 0, 0, 0];
       
       return {
         member,
@@ -266,6 +278,7 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
         teamBreakdown: teamCounts ? Array.from(teamCounts.entries()).map(([team, count]) => ({ team, count })) : [],
         shadowsAsMentor: shadowStats.asMentor,
         shadowsAsLearner: shadowStats.asLearner,
+        weekdayBreakdown: weekdayCounts, // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
       };
     }).sort((a, b) => b.assignmentCount - a.assignmentCount);
 
@@ -557,6 +570,9 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
               const percentage = statistics.maxAssignments > 0 
                 ? (stat.assignmentCount / statistics.maxAssignments) * 100 
                 : 0;
+              
+              // Show "Top Contributor" badge for all members with the highest assignment count
+              const isTopContributor = stat.assignmentCount > 0 && stat.assignmentCount === statistics.maxAssignments;
 
               return (
                 <div key={stat.member.id} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-3 sm:pb-4 last:pb-0">
@@ -572,7 +588,7 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
                           <h4 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
                             {stat.member.name}
                           </h4>
-                          {index === 0 && stat.assignmentCount > 0 && (
+                          {isTopContributor && (
                             <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-semibold rounded">
                               Top Contributor
                             </span>
@@ -602,8 +618,37 @@ export default function AnalyticsView({ members, teams, assignments }: Analytics
                     />
                   </div>
 
+                  {/* Weekday Breakdown Matrix */}
+                  <div className="mt-2 overflow-x-auto">
+                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Distribution by Weekday:
+                    </div>
+                    <div className="inline-flex gap-1 min-w-full">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                        // Reorder from [Sun, Mon, Tue, Wed, Thu, Fri, Sat] to [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+                        const dayIndex = idx === 6 ? 0 : idx + 1;
+                        const count = stat.weekdayBreakdown[dayIndex];
+                        const hasAssignments = count > 0;
+                        
+                        return (
+                          <div
+                            key={day}
+                            className={`flex-1 min-w-[40px] sm:min-w-[50px] px-2 py-1.5 rounded text-center ${
+                              hasAssignments
+                                ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-semibold'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
+                            }`}
+                          >
+                            <div className="text-[10px] sm:text-xs">{day}</div>
+                            <div className="text-xs sm:text-sm font-bold">{count}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Additional Details */}
-                  <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
                     {stat.teamBreakdown.length > 0 && (
                       <div className="flex items-center gap-1">
                         <span className="font-medium">Teams:</span>

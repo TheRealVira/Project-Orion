@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Member } from '@/types';
-import { Mail, Phone, Edit, Trash2, UserCircle, Search, Shield } from 'lucide-react';
+import { Edit, Trash2, UserCircle, Search } from 'lucide-react';
 import MemberFormModal from './MemberFormModal';
-import Avatar from './Avatar';
+import UserCard from './UserCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { canCreateUser, canEditUser, canDeleteUser } from '@/lib/permissions';
 
@@ -14,6 +14,7 @@ interface UserListProps {
 }
 
 type RoleFilter = 'all' | 'admin' | 'user' | 'viewer';
+type AuthProviderFilter = 'all' | 'local' | 'oauth' | 'ldap';
 
 export default function UserList({ members, onCreateMember, onUpdateMember, onDeleteMember }: UserListProps) {
   const { user: currentUser } = useAuth();
@@ -21,6 +22,7 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
   const [editingMember, setEditingMember] = useState<Member | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [authProviderFilter, setAuthProviderFilter] = useState<AuthProviderFilter>('all');
 
   const handleCreate = (memberData: Omit<Member, 'id' | 'createdAt' | 'updatedAt'>) => {
     onCreateMember(memberData);
@@ -48,13 +50,20 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
     setEditingMember(undefined);
   };
 
-  // Filter users based on search query and role
+  // Filter users based on search query, role, and auth provider
   const filteredMembers = useMemo(() => {
     let filtered = members;
 
     // Filter by role
     if (roleFilter !== 'all') {
       filtered = filtered.filter(member => member.role === roleFilter);
+    }
+
+    // Filter by auth provider
+    if (authProviderFilter !== 'all') {
+      filtered = filtered.filter(member => 
+        (member.authProvider || 'local') === authProviderFilter
+      );
     }
 
     // Filter by search query
@@ -68,7 +77,7 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
     }
 
     return filtered;
-  }, [members, searchQuery, roleFilter]);
+  }, [members, searchQuery, roleFilter, authProviderFilter]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -94,51 +103,111 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
       </div>
 
       {/* Role Filter Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setRoleFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            roleFilter === 'all'
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          All Users
-        </button>
-        <button
-          type="button"
-          onClick={() => setRoleFilter('admin')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            roleFilter === 'admin'
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          Admins
-        </button>
-        <button
-          type="button"
-          onClick={() => setRoleFilter('user')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            roleFilter === 'user'
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          Users
-        </button>
-        <button
-          type="button"
-          onClick={() => setRoleFilter('viewer')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            roleFilter === 'viewer'
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          Viewers
-        </button>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Filter by Role
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setRoleFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                roleFilter === 'all'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              All Roles
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoleFilter('admin')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                roleFilter === 'admin'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              Admins
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoleFilter('user')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                roleFilter === 'user'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              Users
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoleFilter('viewer')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                roleFilter === 'viewer'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              Viewers
+            </button>
+          </div>
+        </div>
+
+        {/* Auth Provider Filter Buttons */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Filter by Authentication
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setAuthProviderFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                authProviderFilter === 'all'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              All Types
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthProviderFilter('local')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                authProviderFilter === 'local'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              🔑 Local
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthProviderFilter('oauth')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                authProviderFilter === 'oauth'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              🔐 OAuth
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthProviderFilter('ldap')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                authProviderFilter === 'ldap'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              🏢 LDAP
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -171,10 +240,11 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
       />
 
       {/* Results count */}
-      {(searchQuery || roleFilter !== 'all') && (
+      {(searchQuery || roleFilter !== 'all' || authProviderFilter !== 'all') && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Found {filteredMembers.length} {filteredMembers.length === 1 ? 'user' : 'users'}
           {roleFilter !== 'all' && ` with role: ${roleFilter}`}
+          {authProviderFilter !== 'all' && ` authenticated via ${authProviderFilter}`}
         </div>
       )}
 
@@ -182,12 +252,12 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
         <div className="card text-center py-12">
           <UserCircle className="w-12 h-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            {searchQuery || roleFilter !== 'all' ? 'No users found' : 'No users yet'}
+            {searchQuery || roleFilter !== 'all' || authProviderFilter !== 'all' ? 'No users found' : 'No users yet'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {searchQuery || roleFilter !== 'all' ? 'Try adjusting your filters' : 'Add your first user to get started.'}
+            {searchQuery || roleFilter !== 'all' || authProviderFilter !== 'all' ? 'Try adjusting your filters' : 'Add your first user to get started.'}
           </p>
-          {!searchQuery && roleFilter === 'all' && canCreateUser(currentUser) && (
+          {!searchQuery && roleFilter === 'all' && authProviderFilter === 'all' && canCreateUser(currentUser) && (
             <button type="button" onClick={() => setIsModalOpen(true)} className="btn-primary">
               Add User
             </button>
@@ -197,54 +267,14 @@ export default function UserList({ members, onCreateMember, onUpdateMember, onDe
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredMembers.map(member => (
           <div key={member.id} className="card hover:shadow-lg transition-shadow">
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="flex-shrink-0">
-                <Avatar 
-                  src={member.avatarUrl} 
-                  alt={member.name}
-                  size="xl"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  {member.name}
-                </h3>
-                <div className="mt-1.5 sm:mt-2 space-y-0.5 sm:space-y-1">
-                  <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <a 
-                      href={`mailto:${member.email}`}
-                      className="hover:text-primary-600 truncate"
-                    >
-                      {member.email}
-                    </a>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                      member.role === 'admin' 
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                        : member.role === 'user'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                    }`}>
-                      <Shield className="w-3 h-3" />
-                      {(member.role || 'user').charAt(0).toUpperCase() + (member.role || 'user').slice(1)}
-                    </span>
-                  </div>
-                  {member.phone && (
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                      <a 
-                        href={`tel:${member.phone}`}
-                        className="hover:text-primary-600"
-                      >
-                        {member.phone}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <UserCard 
+              user={member}
+              size="lg"
+              showEmail={true}
+              showPhone={true}
+              showRole={true}
+              showAuthProvider={true}
+            />
             {(canEditUser(currentUser, member.id) || canDeleteUser(currentUser, member.id)) && (
               <div className="flex space-x-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
                 {canEditUser(currentUser, member.id) && (
