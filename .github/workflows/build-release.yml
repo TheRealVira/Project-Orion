@@ -233,6 +233,7 @@ jobs:
     if: github.event_name != 'pull_request'
     permissions:
       contents: read
+      packages: read
       security-events: write
     
     steps:
@@ -257,6 +258,11 @@ jobs:
           else
             echo "tag=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
           fi
+      
+      - name: Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.tag }}
+        continue-on-error: true
       
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
