@@ -1,5 +1,10 @@
 # Project Orion ✨
 
+[![CI](https://github.com/TheRealVira/Project-Orion/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealVira/Project-Orion/actions/workflows/ci.yml)
+[![Build and Release](https://github.com/TheRealVira/Project-Orion/actions/workflows/build-release.yml/badge.svg)](https://github.com/TheRealVira/Project-Orion/actions/workflows/build-release.yml)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/TheRealVira/Project-Orion/pkgs/container/project-orion)
+[![License](https://img.shields.io/github/license/TheRealVira/Project-Orion)](LICENSE)
+
 A modern on-call companion dashboard for managing teams, schedules, incidents, and shadow assignments with enterprise-grade features.
 
 ## 📑 Table of Contents
@@ -17,6 +22,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - [Database](#database)
 - [Development](#development)
 - [Docker Deployment](#docker-deployment)
+- [CI/CD & Releases](#cicd--releases)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Author & Credits](#author--credits)
@@ -496,6 +502,67 @@ Edit `docker-compose.yml` to configure:
 - Application URL
 - Email, SMS, OAuth, LDAP settings
 - Feature flags
+
+## CI/CD & Releases
+
+### Automated Builds
+
+Project Orion uses GitHub Actions for continuous integration and automated releases:
+
+- **✅ CI Pipeline**: Runs on every push and PR
+  - TypeScript type checking
+  - ESLint linting
+  - Build verification
+  - Docker build test
+
+- **📦 Release Pipeline**: Triggered by version tags (`v*.*.*`)
+  - Multi-platform Docker builds (amd64, arm64)
+  - Publish to GitHub Container Registry
+  - Create release artifacts (standalone & deployment packages)
+  - Generate release notes
+  - Security scanning with Trivy
+
+### Docker Images
+
+Pre-built Docker images are available on GitHub Container Registry:
+
+```bash
+# Pull latest stable release
+docker pull ghcr.io/therealvira/project-orion:latest
+
+# Pull specific version
+docker pull ghcr.io/therealvira/project-orion:v0.1.0
+
+# Pull latest commit from main branch
+docker pull ghcr.io/therealvira/project-orion:main
+```
+
+**Supported platforms:**
+- `linux/amd64` - x86_64 (Intel/AMD)
+- `linux/arm64` - ARM64 (Apple Silicon, Raspberry Pi 4+, ARM servers)
+
+### Creating a Release
+
+```bash
+# 1. Update version
+npm version patch  # or minor, or major
+
+# 2. Create and push tag
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin main
+git push origin vX.Y.Z
+```
+
+This automatically triggers the build and release pipeline.
+
+### Release Artifacts
+
+Each release includes:
+- 🐳 **Docker images** (multi-platform)
+- 📦 **Standalone package** (.tar.gz with built application)
+- 🚀 **Deployment package** (.tar.gz with Docker files and configs)
+
+Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) page.
 
 ## Roadmap
 
