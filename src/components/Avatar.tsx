@@ -68,6 +68,8 @@ export default function Avatar({ src, alt, size = 'md', className = '' }: Avatar
         alt={alt}
         className={`${sizeClass} rounded-full object-cover ${className}`}
         onError={() => setImageError(true)}
+        crossOrigin="anonymous"
+        referrerPolicy="no-referrer"
       />
     );
   }

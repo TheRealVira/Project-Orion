@@ -221,9 +221,11 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
                             <div className="flex-shrink-0 h-10 w-10">
                               {userItem.avatarUrl ? (
                                 <img
-                                  className="h-10 w-10 rounded-full"
+                                  className="h-10 w-10 rounded-full object-cover"
                                   src={userItem.avatarUrl}
                                   alt={userItem.name}
+                                  crossOrigin="anonymous"
+                                  referrerPolicy="no-referrer"
                                 />
                               ) : (
                                 <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">

@@ -27,7 +27,7 @@ export default function WebhookTesterRedirect() {
           The webhook tester has been moved to the Incidents page.
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-500 mt-4">
-          You'll be redirected automatically.
+          You&apos;ll be redirected automatically.
         </p>
       </div>
     </div>

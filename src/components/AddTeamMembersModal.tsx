@@ -113,7 +113,7 @@ export default function AddTeamMembersModal({
             <div className="text-center py-8">
               <Search className="w-12 h-12 mx-auto text-gray-400 mb-3" />
               <p className="text-gray-500 dark:text-gray-400">
-                No members found matching "{searchQuery}"
+                No members found matching &quot;{searchQuery}&quot;
               </p>
             </div>
           ) : (

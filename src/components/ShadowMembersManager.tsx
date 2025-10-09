@@ -79,7 +79,7 @@ export default function ShadowMembersManager({
       {selectedShadows.length === 0 ? (
         <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No shadow members selected. Click "Add Shadow" to add members who will learn from the primary member.
+            No shadow members selected. Click &quot;Add Shadow&quot; to add members who will learn from the primary member.
           </p>
         </div>
       ) : (

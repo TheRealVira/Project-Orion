@@ -24,7 +24,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Add security headers to allow external images (Google OAuth avatars)
+  // Note: CSP is intentionally relaxed for img-src to support OAuth profile pictures
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https: blob:; " +
+    "font-src 'self' data:; " +
+    "connect-src 'self';"
+  );
+
+  // Allow images from any HTTPS source (including Google)
+  response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  response.headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
+
+  return response;
 }
 
 export const config = {

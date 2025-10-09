@@ -103,7 +103,7 @@ export default function TeamMembersManager({
           <div className="p-8 text-center">
             <Search className="w-12 h-12 mx-auto text-gray-400 mb-3" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              No members found matching "{searchQuery}"
+              No members found matching &quot;{searchQuery}&quot;
             </p>
           </div>
         ) : (

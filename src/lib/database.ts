@@ -40,21 +40,9 @@ function initializeDatabase() {
     logger.error('Error dropping members table:', err);
   }
 
-  // Migration: Update existing OAuth/LDAP users with 'user' role to 'viewer' role
-  try {
-    const result = db.prepare(`
-      UPDATE users 
-      SET role = 'viewer', updatedAt = datetime('now')
-      WHERE (authProvider = 'oauth' OR authProvider = 'ldap') 
-        AND role = 'user'
-    `).run();
-    
-    if (result.changes > 0) {
-      logger.info(`✅ Updated ${result.changes} external auth user(s) to viewer role`);
-    }
-  } catch (err) {
-    logger.error('Error updating external auth users:', err);
-  }
+  // NOTE: Removed automatic role downgrade migration
+  // OAuth/LDAP users can now have their roles set by admins and they will persist
+  // New OAuth/LDAP users still start as 'viewer' by default (see auth-oauth.ts and auth-ldap.ts)
 
   // Create Users table (for authentication)
   db.exec(`

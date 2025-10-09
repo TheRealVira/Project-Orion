@@ -97,7 +97,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 ### Prerequisites
 
 - **Option 1 (Docker)**: Docker and Docker Compose
-- **Option 2 (Local)**: Node.js 18+ and npm/yarn/pnpm
+- **Option 2 (Local)**: Node.js 20+ and npm/yarn/pnpm
 - A modern web browser
 
 ### Installation
