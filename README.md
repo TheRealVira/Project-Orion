@@ -497,15 +497,6 @@ Edit `docker-compose.yml` to configure:
 - Email, SMS, OAuth, LDAP settings
 - Feature flags
 
-### Production Deployment
-
-For production with HTTPS and reverse proxy, see [DOCKER.md](./DOCKER.md) for:
-- Nginx/Traefik configuration
-- SSL/TLS setup
-- Database backups
-- Security best practices
-- Troubleshooting guide
-
 ## Roadmap
 
 ### ✅ Completed Features
