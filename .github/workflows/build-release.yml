@@ -13,7 +13,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # GitHub Container Registry requires lowercase
+  IMAGE_NAME: therealvira/project-orion
 
 jobs:
   test:
