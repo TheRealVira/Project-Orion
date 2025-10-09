@@ -268,12 +268,13 @@ export async function seedInitialData() {
   const now = new Date().toISOString();
   const hashedPassword = await bcrypt.hash(config.defaultAdmin.password, 10);
 
+  // Use INSERT OR IGNORE to prevent duplicate errors
   const insertAdmin = db.prepare(`
-    INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, createdAt, updatedAt)
+    INSERT OR IGNORE INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, createdAt, updatedAt)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  insertAdmin.run(
+  const result = insertAdmin.run(
     adminId,
     config.defaultAdmin.email,
     config.defaultAdmin.name,
@@ -287,7 +288,9 @@ export async function seedInitialData() {
     now
   );
 
-  console.log(`Database initialized with default admin user (${config.defaultAdmin.email} / ${config.defaultAdmin.password})`);
+  if (result.changes > 0) {
+    console.log(`Database initialized with default admin user (${config.defaultAdmin.email} / ${config.defaultAdmin.password})`);
+  }
 }
 
 export default getDatabase;
