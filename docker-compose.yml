@@ -1,0 +1,83 @@
+services:
+  orion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: project-orion:latest
+    container_name: project-orion
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persistent database storage
+      - orion-data:/app/data
+    environment:
+      # Application
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_AUTH_URL=http://localhost:3000
+      
+      # Database
+      - DATABASE_PATH=/app/data/orion.db
+      
+      # Default Admin (change these!)
+      - DEFAULT_ADMIN_EMAIL=admin@orion.local
+      - DEFAULT_ADMIN_NAME=Administrator
+      - DEFAULT_ADMIN_PASSWORD=admin123
+      
+      # Feature Flags
+      - ENABLE_WEBHOOKS=true
+      - ENABLE_EMAIL_NOTIFICATIONS=true
+      - ENABLE_SMS_NOTIFICATIONS=false
+      - ENABLE_OAUTH=true
+      - ENABLE_LDAP=false
+      
+      # Email Configuration (optional)
+      # - SMTP_HOST=smtp.gmail.com
+      # - SMTP_PORT=587
+      # - SMTP_SECURE=false
+      # - SMTP_USER=your-email@gmail.com
+      # - SMTP_PASS=your-app-password
+      # - FROM_EMAIL=orion@example.com
+      # - FROM_NAME=Project Orion
+      
+      # SMS Configuration (optional)
+      # - ENABLE_SMS_NOTIFICATIONS=true
+      # - TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      # - TWILIO_AUTH_TOKEN=your_auth_token
+      # - TWILIO_FROM_NUMBER=+1234567890
+      
+      # OAuth Configuration (optional)
+      # Google
+      # - OAUTH_GOOGLE_CLIENT_ID=your_client_id
+      # - OAUTH_GOOGLE_CLIENT_SECRET=your_client_secret
+      
+      # GitHub
+      # - OAUTH_GITHUB_CLIENT_ID=your_client_id
+      # - OAUTH_GITHUB_CLIENT_SECRET=your_client_secret
+      
+      # LDAP Configuration (optional)
+      # - ENABLE_LDAP=true
+      # - LDAP_URL=ldap://ldap.company.com:389
+      # - LDAP_BIND_DN=cn=admin,dc=company,dc=com
+      # - LDAP_BIND_PASSWORD=your_password
+      # - LDAP_SEARCH_BASE=ou=users,dc=company,dc=com
+      # - LDAP_SEARCH_FILTER=(uid={{username}})
+      
+      # Logging
+      - LOG_LEVEL=info
+    
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/auth/config', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "com.project-orion.description=On-call companion dashboard"
+      - "com.project-orion.version=0.1.0"
+
+volumes:
+  orion-data:
+    driver: local

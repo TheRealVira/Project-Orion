@@ -16,7 +16,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - [Authentication](#authentication)
 - [Database](#database)
 - [Development](#development)
-- [Project Structure](#project-structure)
+- [Docker Deployment](#docker-deployment)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Author & Credits](#author--credits)
@@ -90,10 +90,24 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
+- **Option 1 (Docker)**: Docker and Docker Compose
+- **Option 2 (Local)**: Node.js 18+ and npm/yarn/pnpm
 - A modern web browser
 
 ### Installation
+
+#### 🐳 Docker Deployment (Recommended)
+
+**Quick start with Docker Compose:**
+```bash
+git clone https://github.com/TheRealVira/Project-Orion.git
+cd Project-Orion
+docker-compose up -d
+```
+
+Access at http://localhost:3000 with default credentials.
+
+#### 💻 Local Development
 
 1. Clone the repository:
 ```bash
@@ -449,6 +463,49 @@ src/
 └── types/            # TypeScript definitions
 ```
 
+## Docker Deployment
+
+Project Orion includes production-ready Docker support with multi-stage builds for optimized image size.
+
+### Quick Start with Docker Compose
+
+```bash
+# Clone and start
+git clone https://github.com/TheRealVira/Project-Orion.git
+cd Project-Orion
+docker-compose up -d
+
+# View logs
+docker-compose logs -f orion
+
+# Stop
+docker-compose down
+```
+
+### Features
+- 🐳 **Multi-stage build**: Optimized production image (~200MB)
+- 📦 **Persistent storage**: Database stored in Docker volume
+- 🔒 **Non-root user**: Runs as unprivileged user for security
+- 💚 **Health checks**: Built-in container health monitoring
+- ⚙️ **Easy configuration**: All settings via environment variables
+
+### Configuration
+
+Edit `docker-compose.yml` to configure:
+- Admin credentials (⚠️ change `DEFAULT_ADMIN_PASSWORD`!)
+- Application URL
+- Email, SMS, OAuth, LDAP settings
+- Feature flags
+
+### Production Deployment
+
+For production with HTTPS and reverse proxy, see [DOCKER.md](./DOCKER.md) for:
+- Nginx/Traefik configuration
+- SSL/TLS setup
+- Database backups
+- Security best practices
+- Troubleshooting guide
+
 ## Roadmap
 
 ### ✅ Completed Features
@@ -514,6 +571,7 @@ Project Orion is an on-call management dashboard built with modern web technolog
 - 🌐 Website: [https://vira.solutions](https://vira.solutions)
 - 💻 GitHub: [@TheRealVira](https://github.com/TheRealVira)
 - 📦 Repository: [Project-Orion](https://github.com/TheRealVira/Project-Orion)
+- ☕ Ko-fi: [https://ko-fi.com/vira](https://ko-fi.com/vira)
 
 ## License
 
