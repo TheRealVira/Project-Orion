@@ -95,6 +95,11 @@ export interface Incident {
   inProgressAt?: Date;
   closedAt?: Date;
   updatedAt: Date;
+  firstResponseAt?: Date;
+  slaResponseDeadline?: Date;
+  slaResolutionDeadline?: Date;
+  slaResponseBreached?: boolean;
+  slaResolutionBreached?: boolean;
 }
 
 /**
@@ -158,4 +163,42 @@ export interface EscalationLayer {
   memberIds: string[];
   waitMinutes: number; // How long to wait before escalating to next layer
   notificationChannels: string[]; // email, sms, etc.
+}
+
+/**
+ * SLA settings for a team
+ */
+export interface TeamSLASettings {
+  id: string;
+  teamId: string;
+  responseTimeCritical: number; // minutes
+  responseTimeHigh: number;
+  responseTimeMedium: number;
+  responseTimeLow: number;
+  resolutionTimeCritical: number; // minutes
+  resolutionTimeHigh: number;
+  resolutionTimeMedium: number;
+  resolutionTimeLow: number;
+  businessHoursOnly: boolean;
+  businessHoursStart: string; // HH:mm format
+  businessHoursEnd: string; // HH:mm format
+  businessDays: number[]; // 0 = Sunday, 1 = Monday, etc.
+  timezone: string;
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * SLA status for an incident
+ */
+export interface SLAStatus {
+  responseTimeRemaining: number; // minutes remaining (negative if breached)
+  resolutionTimeRemaining: number; // minutes remaining (negative if breached)
+  responseTimePercentage: number; // 0-100, percentage of time elapsed
+  resolutionTimePercentage: number; // 0-100, percentage of time elapsed
+  isResponseBreached: boolean;
+  isResolutionBreached: boolean;
+  isResponseAtRisk: boolean; // true if > 80% of time elapsed
+  isResolutionAtRisk: boolean; // true if > 80% of time elapsed
 }

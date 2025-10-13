@@ -530,3 +530,130 @@ Project Orion - On-Call Management
   }
 }
 
+export async function sendSLABreachEmail(
+  recipientEmail: string,
+  recipientName: string,
+  incident: IncidentEmailData,
+  breachType: 'response' | 'resolution',
+  timeRemaining: string
+): Promise<boolean> {
+  if (!isFeatureEnabled('emailNotifications')) {
+    logger.info(`📧 Email notifications disabled. Would have sent: SLA breach warning "${incident.title}" to ${recipientEmail}`);
+    return false;
+  }
+
+  const transport = getTransporter();
+  if (!transport) {
+    logger.warn('Email not configured. Skipping notification.');
+    return false;
+  }
+
+  const severityEmoji = {
+    critical: '🔴',
+    high: '🟠',
+    medium: '🟡',
+    low: '🔵',
+  }[incident.severity] || '⚪';
+
+  const breachTypeText = breachType === 'response' ? 'Response Time' : 'Resolution Time';
+  const isBreached = timeRemaining.includes('Overdue');
+
+  const mailOptions = {
+    from: `${FROM_NAME} <${FROM_EMAIL}>`,
+    to: `${recipientName} <${recipientEmail}>`,
+    subject: `⚠️ SLA ${isBreached ? 'Breached' : 'At Risk'}: ${incident.title}`,
+    text: `
+Hi ${recipientName},
+
+An incident's SLA ${breachTypeText} is ${isBreached ? 'BREACHED' : 'at risk'}:
+
+Incident ID: ${incident.incidentId}
+Title: ${incident.title}
+Severity: ${incident.severity.toUpperCase()}
+Status: ${incident.status}
+SLA Type: ${breachTypeText}
+Time Remaining: ${timeRemaining}
+
+${isBreached ? 'This incident has exceeded its SLA target.' : 'This incident is approaching its SLA deadline (>80% elapsed).'}
+
+Please take immediate action: ${config.appUrl}/?tab=incidents
+
+---
+Project Orion
+    `.trim(),
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: ${isBreached ? '#dc2626' : '#ea580c'}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+    .warning { background: ${isBreached ? '#fee2e2' : '#ffedd5'}; border-left: 4px solid ${isBreached ? '#dc2626' : '#ea580c'}; padding: 15px; margin: 15px 0; }
+    .btn { display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+    .severity { display: inline-block; padding: 4px 12px; background: #e5e7eb; border-radius: 4px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">⚠️ SLA ${isBreached ? 'Breach' : 'Warning'}</h1>
+      <p style="margin: 8px 0 0 0;">Immediate action required</p>
+    </div>
+    <div class="content">
+      <div class="warning">
+        <h3 style="margin-top: 0;">${isBreached ? '🚨 SLA Target Breached' : '⚠️ SLA Target At Risk'}</h3>
+        <p>${isBreached 
+          ? 'This incident has exceeded its SLA target and requires immediate attention.' 
+          : 'This incident is approaching its SLA deadline. Over 80% of the target time has elapsed.'}</p>
+      </div>
+      
+      <h2>Incident Details</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>ID:</strong></td>
+          <td style="padding: 8px;">${incident.incidentId}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>Title:</strong></td>
+          <td style="padding: 8px;">${incident.title}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>Severity:</strong></td>
+          <td style="padding: 8px;"><span class="severity">${severityEmoji} ${incident.severity.toUpperCase()}</span></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>Status:</strong></td>
+          <td style="padding: 8px;">${incident.status}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>SLA Type:</strong></td>
+          <td style="padding: 8px;">${breachTypeText}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; background: #f3f4f6;"><strong>Time Remaining:</strong></td>
+          <td style="padding: 8px; color: ${isBreached ? '#dc2626' : '#ea580c'}; font-weight: bold;">${timeRemaining}</td>
+        </tr>
+      </table>
+      
+      <a href="${config.appUrl}/?tab=incidents" class="btn">View Incident</a>
+      
+      ${getEmailFooter()}
+    </div>
+  </div>
+</body>
+</html>
+    `.trim(),
+  };
+
+  try {
+    await transport.sendMail(mailOptions);
+    logger.info(`✅ SLA ${breachType} ${isBreached ? 'breach' : 'warning'} email sent to ${recipientEmail}`);
+    return true;
+  } catch (error) {
+    logger.error(`❌ Failed to send SLA ${breachType} email:`, error);
+    return false;
+  }
+}
+

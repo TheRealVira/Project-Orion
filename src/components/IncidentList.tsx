@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Bell, AlertCircle, AlertTriangle, Info, CheckCircle, Filter, User, Users as UsersIcon, Calendar, Webhook } from 'lucide-react';
-import type { Incident, Team, Member } from '@/types';
+import type { Incident, Team, Member, TeamSLASettings } from '@/types';
 import IncidentDetail from './IncidentDetail';
 import WebhookTesterModal from './WebhookTesterModal';
+import SLAIndicator from './SLAIndicator';
+import Pagination from './Pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, subDays } from 'date-fns';
 
@@ -31,6 +33,7 @@ export default function IncidentList() {
     const [incidents, setIncidents] = useState<IncidentView[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [members, setMembers] = useState<Member[]>([]);
+    const [slaSettings, setSlaSettings] = useState<Record<string, TeamSLASettings>>({});
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
@@ -44,10 +47,20 @@ export default function IncidentList() {
     const [dateRangeFilter, setDateRangeFilter] = useState<string>('24h');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
+    
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(20);
 
     useEffect(() => {
         fetchData();
+        setCurrentPage(1); // Reset to first page when filters change
     }, [statusFilter, severityFilter, teamFilter, assignedToFilter, dateRangeFilter, customStartDate, customEndDate]);
+    
+    useEffect(() => {
+        // Reset to page 1 when items per page changes
+        setCurrentPage(1);
+    }, [itemsPerPage]);
 
     const fetchData = async () => {
         try {
@@ -102,6 +115,23 @@ export default function IncidentList() {
             setIncidents(incidentsData);
             setTeams(teamsData);
             setMembers(membersData);
+            
+            // Fetch SLA settings for all teams
+            const slaPromises = teamsData.map((team: Team) =>
+                fetch(`/api/teams/${team.id}/sla`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => ({ teamId: team.id, settings: data }))
+                    .catch(() => ({ teamId: team.id, settings: null }))
+            );
+            
+            const slaResults = await Promise.all(slaPromises);
+            const slaMap: Record<string, TeamSLASettings> = {};
+            slaResults.forEach(result => {
+                if (result.settings) {
+                    slaMap[result.teamId] = result.settings;
+                }
+            });
+            setSlaSettings(slaMap);
         } catch (error) {
             console.error('Error fetching incidents:', error);
         } finally {
@@ -158,6 +188,22 @@ export default function IncidentList() {
         assignedToFilter,
         dateRangeFilter !== '24h' ? dateRangeFilter : '' // Only count if not default
     ].filter(Boolean).length;
+    
+    // Pagination logic
+    const totalItems = incidents.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedIncidents = incidents.slice(startIndex, endIndex);
+    
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
+    const handleItemsPerPageChange = (newItemsPerPage: number) => {
+        setItemsPerPage(newItemsPerPage);
+    };
 
     const getDateRangeLabel = () => {
         if (dateRangeFilter === 'custom' && customStartDate && customEndDate) {
@@ -357,19 +403,20 @@ export default function IncidentList() {
                     <Calendar className="w-4 h-4" />
                     <span>Showing incidents from <strong className="text-gray-900 dark:text-white">{getDateRangeLabel()}</strong></span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">{incidents.length} incident{incidents.length !== 1 ? 's' : ''}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{totalItems} incident{totalItems !== 1 ? 's' : ''}</span>
             </div>
 
             {/* Incidents List */}
-            <div className="space-y-3">
-                {incidents.length === 0 ? (
-                    <div className="card text-center">
+            <div className="card p-0 overflow-hidden">
+                <div className="space-y-3 p-4">
+                {paginatedIncidents.length === 0 ? (
+                    <div className="text-center py-8">
                         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
                         <p className="text-gray-600 dark:text-gray-400">No incidents found</p>
                         <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">All clear! 🎉</p>
                     </div>
                 ) : (
-                    incidents.map((incident) => {
+                    paginatedIncidents.map((incident) => {
                         const SeverityIcon = severityConfig[incident.severity].icon;
 
                         // Adjust styling based on status
@@ -389,7 +436,7 @@ export default function IncidentList() {
                         return (
                             <div
                                 key={incident.id}
-                                className={`card ${getCardStyle()} cursor-pointer hover:shadow-lg transition-all`}
+                                className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${getCardStyle()} cursor-pointer hover:shadow-lg transition-all`}
                                 onClick={() => setSelectedIncidentId(incident.id)}
                             >
                                 <div className="flex items-start justify-between gap-3">
@@ -437,6 +484,17 @@ export default function IncidentList() {
                                                     {new Date(incident.createdAt).toLocaleString()}
                                                 </span>
                                             </div>
+                                            
+                                            {/* SLA Indicator */}
+                                            {incident.teamId && slaSettings[incident.teamId] && (
+                                                <div className="mt-2">
+                                                    <SLAIndicator
+                                                        incident={incident}
+                                                        slaSettings={slaSettings[incident.teamId]}
+                                                        size="small"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -482,6 +540,18 @@ export default function IncidentList() {
                         );
                     })
                 )}
+                </div>
+                
+                {/* Pagination */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={handlePageChange}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                    pageSizeOptions={[10, 20, 50, 100]}
+                />
             </div>
 
             {/* Incident Detail Modal */}

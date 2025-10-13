@@ -193,6 +193,11 @@ function initializeDatabase() {
       updatedAt TEXT NOT NULL,
       acknowledgedAt TEXT,
       closedAt TEXT,
+      firstResponseAt TEXT,
+      slaResponseDeadline TEXT,
+      slaResolutionDeadline TEXT,
+      slaResponseBreached INTEGER DEFAULT 0,
+      slaResolutionBreached INTEGER DEFAULT 0,
       FOREIGN KEY (teamId) REFERENCES teams(id) ON DELETE SET NULL,
       FOREIGN KEY (assignedToId) REFERENCES users(id) ON DELETE SET NULL
     )
@@ -240,6 +245,31 @@ function initializeDatabase() {
     )
   `);
 
+  // Create Team SLA Settings table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS team_sla_settings (
+      id TEXT PRIMARY KEY,
+      teamId TEXT NOT NULL UNIQUE,
+      responseTimeCritical INTEGER NOT NULL,
+      responseTimeHigh INTEGER NOT NULL,
+      responseTimeMedium INTEGER NOT NULL,
+      responseTimeLow INTEGER NOT NULL,
+      resolutionTimeCritical INTEGER NOT NULL,
+      resolutionTimeHigh INTEGER NOT NULL,
+      resolutionTimeMedium INTEGER NOT NULL,
+      resolutionTimeLow INTEGER NOT NULL,
+      businessHoursOnly INTEGER NOT NULL DEFAULT 0,
+      businessHoursStart TEXT DEFAULT '09:00',
+      businessHoursEnd TEXT DEFAULT '17:00',
+      businessDays TEXT DEFAULT '1,2,3,4,5',
+      timezone TEXT DEFAULT 'UTC',
+      enabled INTEGER NOT NULL DEFAULT 1,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      FOREIGN KEY (teamId) REFERENCES teams(id) ON DELETE CASCADE
+    )
+  `);
+
   // Create indices for incidents
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_incidents_fingerprint ON incidents(fingerprint);
@@ -249,6 +279,7 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_incidents_severity ON incidents(severity);
     CREATE INDEX IF NOT EXISTS idx_incident_notes_incidentId ON incident_notes(incidentId);
     CREATE INDEX IF NOT EXISTS idx_incident_notifications_incidentId ON incident_notifications(incidentId);
+    CREATE INDEX IF NOT EXISTS idx_team_sla_settings_teamId ON team_sla_settings(teamId);
   `);
 }
 

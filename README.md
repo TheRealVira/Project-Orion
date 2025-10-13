@@ -63,6 +63,19 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **Email Notifications**: Automatic email alerts for incident creation and assignments
 - **SMS Notifications**: Optional SMS alerts for critical incidents via Twilio (disabled by default)
 
+### ⏱️ SLA Tracking & Management
+- **Team-Level SLA Configuration**: Each team can define custom SLA targets for response and resolution times
+- **Severity-Based Targets**: Configure different SLA targets based on incident severity (critical, high, medium, low)
+- **Business Hours Support**: Option to calculate SLA only during business hours with customizable schedules
+- **Timezone-Aware**: Support for multiple timezones to accommodate global teams
+- **Automatic Deadline Calculation**: SLA deadlines are automatically calculated when incidents are created
+- **Real-Time Tracking**: Visual progress indicators show time remaining until SLA breach
+- **Breach Detection**: Automatic detection and flagging of SLA breaches for response and resolution times
+- **At-Risk Alerts**: Early warning system when SLA targets are >80% consumed
+- **Email Notifications**: Automatic alerts sent to assigned users when SLAs are at risk or breached
+- **Visual Indicators**: Color-coded badges and progress bars display SLA status on incident lists and details
+- **Background Monitoring**: Scheduled checks for SLA compliance with automated notifications
+
 ### 📊 Analytics & Reporting
 - **Assignment Statistics**: View detailed assignment statistics with customizable date ranges
 - **Workload Distribution**: Analyze assignment counts per member with visual progress bars
@@ -72,6 +85,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 
 ### 🔍 User Experience
 - **Search Functionality**: Fast search across users, teams, incidents, and shadow assignments
+- **Pagination**: Smart pagination for incidents, users, and teams with configurable page sizes (10, 20, 50, 100)
 - **Mobile Responsive**: Fully optimized for mobile, tablet, and desktop devices with responsive layouts
 - **Dark Mode**: Built-in dark mode support with persistent theme preference
 - **Real-time Updates**: Changes reflect immediately across all views

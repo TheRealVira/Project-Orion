@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User as UserType } from '@/lib/auth';
 import { Shield, Edit2, X, UserPlus } from 'lucide-react';
+import Pagination from './Pagination';
 
 interface AdminUsersModalProps {
   isOpen: boolean;
@@ -27,12 +28,21 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'user' | 'viewer'>('user');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     if (isOpen && user?.role === 'admin') {
       fetchUsers();
+      setCurrentPage(1); // Reset to first page when modal opens
     }
   }, [isOpen, user]);
+  
+  useEffect(() => {
+    setCurrentPage(1); // Reset to first page when items per page changes
+  }, [itemsPerPage]);
 
   const fetchUsers = async () => {
     try {
@@ -142,6 +152,21 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
 
   if (!isOpen || !user || user.role !== 'admin') return null;
 
+  // Pagination logic
+  const totalItems = users.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, endIndex);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -192,7 +217,8 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
                 No users found
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
@@ -214,7 +240,7 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {users.map((userItem) => (
+                    {paginatedUsers.map((userItem) => (
                       <tr key={userItem.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -279,7 +305,19 @@ export default function AdminUsersModal({ isOpen, onClose }: AdminUsersModalProp
                     ))}
                   </tbody>
                 </table>
+                
+                {/* Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={handlePageChange}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                  pageSizeOptions={[10, 20, 50, 100]}
+                />
               </div>
+              </>
             )}
           </div>
         </div>

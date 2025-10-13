@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
 import { Shadow, Member } from '@/types';
 import { format } from 'date-fns';
 import ShadowFormModal from './ShadowFormModal';
+import Pagination from './Pagination';
 import Avatar from './Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { canCreateShadow, canEditShadow, canDeleteShadow } from '@/lib/permissions';
@@ -28,6 +29,10 @@ export default function ShadowList({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShadow, setEditingShadow] = useState<Shadow | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const handleEdit = (shadow: Shadow) => {
     setEditingShadow(shadow);
@@ -76,6 +81,27 @@ export default function ShadowList({
       );
     });
   }, [shadows, searchQuery, members]);
+  
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
+  
+  // Pagination logic
+  const totalItems = filteredShadows.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedShadows = filteredShadows.slice(startIndex, endIndex);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -129,11 +155,13 @@ export default function ShadowList({
       </div>
 
       {/* Results count */}
-      {searchQuery && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Found {filteredShadows.length} shadow {filteredShadows.length === 1 ? 'assignment' : 'assignments'}
-        </div>
-      )}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        {searchQuery ? (
+          <span>Found {totalItems} shadow {totalItems === 1 ? 'assignment' : 'assignments'}</span>
+        ) : (
+          <span>{totalItems} total shadow {totalItems === 1 ? 'assignment' : 'assignments'}</span>
+        )}
+      </div>
 
       {filteredShadows.length === 0 ? (
         <div className="card text-center py-12">
@@ -151,8 +179,9 @@ export default function ShadowList({
           )}
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredShadows.map(shadow => {
+          {paginatedShadows.map(shadow => {
             const primary = getMemberById(shadow.userId);
             const shadowMember = getMemberById(shadow.shadowUserId);
             
@@ -282,6 +311,20 @@ export default function ShadowList({
             );
           })}
         </div>
+        
+        {/* Pagination */}
+        <div className="card p-0 overflow-hidden">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            pageSizeOptions={[10, 20, 50]}
+          />
+        </div>
+        </>
       )}
     </div>
   );

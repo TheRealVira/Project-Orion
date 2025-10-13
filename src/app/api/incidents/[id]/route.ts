@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { getSessionByToken } from '@/lib/auth';
+import { TeamSLASettings } from '@/types';
+import { calculateBusinessMinutes } from '@/lib/sla';
 
 // GET /api/incidents/[id] - Get a single incident
 export async function GET(
@@ -116,7 +118,31 @@ export async function PUT(
       if (status === 'in_progress' && oldStatus === 'new') {
         updates.push('acknowledgedAt = ?');
         values.push(now);
-        statusChangeNote = '🔵 Incident started - Status changed to In Progress';
+        
+        // Track first response time for SLA
+        const existingIncident = existing as any;
+        if (!existingIncident.firstResponseAt) {
+          updates.push('firstResponseAt = ?');
+          values.push(now);
+          
+          // Check if response SLA was breached
+          if (existingIncident.slaResponseDeadline && existingIncident.teamId) {
+            const responseDeadline = new Date(existingIncident.slaResponseDeadline);
+            const nowDate = new Date(now);
+            
+            if (nowDate > responseDeadline) {
+              updates.push('slaResponseBreached = ?');
+              values.push(1);
+              statusChangeNote = '🔵 Incident started - Status changed to In Progress\n⚠️ Response SLA breached';
+            } else {
+              statusChangeNote = '🔵 Incident started - Status changed to In Progress';
+            }
+          } else {
+            statusChangeNote = '🔵 Incident started - Status changed to In Progress';
+          }
+        } else {
+          statusChangeNote = '🔵 Incident started - Status changed to In Progress';
+        }
         
         // Always assign to current user who started the work (overwrite any existing assignment)
         if (currentUserId) {
@@ -163,7 +189,23 @@ export async function PUT(
       } else if (status === 'closed') {
         updates.push('closedAt = ?');
         values.push(now);
-        statusChangeNote = '✅ Incident closed - Issue resolved';
+        
+        // Check if resolution SLA was breached
+        const existingIncident = existing as any;
+        if (existingIncident.slaResolutionDeadline && existingIncident.teamId) {
+          const resolutionDeadline = new Date(existingIncident.slaResolutionDeadline);
+          const nowDate = new Date(now);
+          
+          if (nowDate > resolutionDeadline) {
+            updates.push('slaResolutionBreached = ?');
+            values.push(1);
+            statusChangeNote = '✅ Incident closed - Issue resolved\n⚠️ Resolution SLA breached';
+          } else {
+            statusChangeNote = '✅ Incident closed - Issue resolved';
+          }
+        } else {
+          statusChangeNote = '✅ Incident closed - Issue resolved';
+        }
       }
     }
     

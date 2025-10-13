@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
-import type { Incident } from '@/types';
+import { Incident, TeamSLASettings } from '@/types';
+import { calculateSLADeadline, getResponseTarget, getResolutionTarget } from '@/lib/sla';
 
 // GET /api/incidents - List all incidents
 export async function GET(request: NextRequest) {
@@ -147,13 +148,52 @@ export async function POST(request: NextRequest) {
     // Create new incident
     const id = `inc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
+    const createdAt = new Date(now);
+    
+    // Calculate SLA deadlines if team has SLA settings
+    let slaResponseDeadline: string | null = null;
+    let slaResolutionDeadline: string | null = null;
+    
+    if (teamId) {
+      const slaSettings = db.prepare('SELECT * FROM team_sla_settings WHERE teamId = ? AND enabled = 1').get(teamId) as any;
+      
+      if (slaSettings) {
+        const settings: TeamSLASettings = {
+          id: slaSettings.id,
+          teamId: slaSettings.teamId,
+          responseTimeCritical: slaSettings.responseTimeCritical,
+          responseTimeHigh: slaSettings.responseTimeHigh,
+          responseTimeMedium: slaSettings.responseTimeMedium,
+          responseTimeLow: slaSettings.responseTimeLow,
+          resolutionTimeCritical: slaSettings.resolutionTimeCritical,
+          resolutionTimeHigh: slaSettings.resolutionTimeHigh,
+          resolutionTimeMedium: slaSettings.resolutionTimeMedium,
+          resolutionTimeLow: slaSettings.resolutionTimeLow,
+          businessHoursOnly: Boolean(slaSettings.businessHoursOnly),
+          businessHoursStart: slaSettings.businessHoursStart,
+          businessHoursEnd: slaSettings.businessHoursEnd,
+          businessDays: slaSettings.businessDays.split(',').map((d: string) => parseInt(d)),
+          timezone: slaSettings.timezone,
+          enabled: Boolean(slaSettings.enabled),
+          createdAt: new Date(slaSettings.createdAt),
+          updatedAt: new Date(slaSettings.updatedAt),
+        };
+        
+        const responseTarget = getResponseTarget(severity as any, settings);
+        const resolutionTarget = getResolutionTarget(severity as any, settings);
+        
+        slaResponseDeadline = calculateSLADeadline(createdAt, responseTarget, settings).toISOString();
+        slaResolutionDeadline = calculateSLADeadline(createdAt, resolutionTarget, settings).toISOString();
+      }
+    }
     
     db.prepare(`
       INSERT INTO incidents (
         id, fingerprint, source, sourceId, title, description,
         severity, status, teamId, assignedToId, tags, metadata,
-        createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        createdAt, updatedAt, slaResponseDeadline, slaResolutionDeadline,
+        slaResponseBreached, slaResolutionBreached
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       fingerprint,
@@ -168,7 +208,11 @@ export async function POST(request: NextRequest) {
       JSON.stringify(tags),
       JSON.stringify(metadata),
       now,
-      now
+      now,
+      slaResponseDeadline,
+      slaResolutionDeadline,
+      0,
+      0
     );
     
     // Fetch the created incident with team and member info

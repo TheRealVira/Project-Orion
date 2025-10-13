@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Team, Member } from '@/types';
-import { Users as UsersIcon, Edit, Trash2, Search } from 'lucide-react';
+import { Users as UsersIcon, Edit, Trash2, Search, Clock } from 'lucide-react';
 import TeamFormModal from './TeamFormModal';
+import TeamSLAConfig from './TeamSLAConfig';
+import Pagination from './Pagination';
 import Avatar from './Avatar';
 import { User } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +24,11 @@ export default function TeamList({ teams, members, users, onCreateTeam, onUpdate
   const [editingTeam, setEditingTeam] = useState<Team | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [teamOwnerships, setTeamOwnerships] = useState<Record<string, string[]>>({});
+  const [slaConfigTeamId, setSlaConfigTeamId] = useState<string | null>(null);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Fetch team ownerships
   useEffect(() => {
@@ -86,6 +93,27 @@ export default function TeamList({ teams, members, users, onCreateTeam, onUpdate
       );
     });
   }, [teams, searchQuery, members]);
+  
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
+  
+  // Pagination logic
+  const totalItems = filteredTeams.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTeams = filteredTeams.slice(startIndex, endIndex);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -142,11 +170,13 @@ export default function TeamList({ teams, members, users, onCreateTeam, onUpdate
       />
 
       {/* Results count */}
-      {searchQuery && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Found {filteredTeams.length} {filteredTeams.length === 1 ? 'team' : 'teams'}
-        </div>
-      )}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        {searchQuery ? (
+          <span>Found {totalItems} {totalItems === 1 ? 'team' : 'teams'}</span>
+        ) : (
+          <span>{totalItems} total {totalItems === 1 ? 'team' : 'teams'}</span>
+        )}
+      </div>
 
       {filteredTeams.length === 0 ? (
         <div className="card text-center py-12">
@@ -164,8 +194,9 @@ export default function TeamList({ teams, members, users, onCreateTeam, onUpdate
           )}
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {filteredTeams.map(team => {
+          {paginatedTeams.map(team => {
           const teamMembers = getTeamMembers(team);
           
           return (
@@ -242,33 +273,68 @@ export default function TeamList({ teams, members, users, onCreateTeam, onUpdate
               </div>
 
               {(canEditTeam(currentUser, team.id, teamOwnerships) || canDeleteTeam(currentUser, team.id, teamOwnerships)) && (
-                <div className="flex space-x-2 mt-3 sm:mt-4">
-                  {canEditTeam(currentUser, team.id, teamOwnerships) && (
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(team)}
-                      className="flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 py-2.5 sm:py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-h-[44px] sm:min-h-0"
-                    >
-                      <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>Edit</span>
-                    </button>
-                  )}
-                  {canDeleteTeam(currentUser, team.id, teamOwnerships) && (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(team.id)}
-                      className="flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 py-2.5 sm:py-2 text-xs sm:text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors min-h-[44px] sm:min-h-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Delete</span>
-                    </button>
-                  )}
+                <div className="space-y-2 mt-3 sm:mt-4">
+                  <div className="flex space-x-2">
+                    {canEditTeam(currentUser, team.id, teamOwnerships) && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(team)}
+                          className="flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 py-2.5 sm:py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-h-[44px] sm:min-h-0"
+                        >
+                          <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSlaConfigTeamId(team.id)}
+                          className="flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 py-2.5 sm:py-2 text-xs sm:text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors min-h-[44px] sm:min-h-0"
+                        >
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>SLA</span>
+                        </button>
+                      </>
+                    )}
+                    {canDeleteTeam(currentUser, team.id, teamOwnerships) && (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(team.id)}
+                        className="flex-1 flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 py-2.5 sm:py-2 text-xs sm:text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors min-h-[44px] sm:min-h-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
         </div>
+        
+        {/* Pagination */}
+        <div className="card p-0 overflow-hidden">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            pageSizeOptions={[10, 20, 50]}
+          />
+        </div>
+        </>
+      )}
+
+      {/* SLA Configuration Modal */}
+      {slaConfigTeamId && (
+        <TeamSLAConfig
+          teamId={slaConfigTeamId}
+          isOpen={true}
+          onClose={() => setSlaConfigTeamId(null)}
+        />
       )}
     </div>
   );
