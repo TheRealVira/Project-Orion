@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
-import { Calendar, Users, UserPlus, Eye, BarChart3, Bell } from 'lucide-react';
+import { Calendar, Users, UserPlus, Eye, BarChart3, Bell, Clock } from 'lucide-react';
 import { DateAssignmentView, Member, Team, DateAssignment, Shadow } from '@/types';
 import { KofiIcon } from '@/components/BrandIcons';
 import AnimatedHeart from '@/components/AnimatedHeart';
@@ -19,6 +19,7 @@ import TeamList from '@/components/TeamList';
 import ShadowList from '@/components/ShadowList';
 import AnalyticsView from '@/components/AnalyticsView';
 import IncidentList from '@/components/IncidentList';
+import SLADashboard from '@/components/SLADashboard';
 import UserProfile from '@/components/UserProfile';
 import MemberFormModal from '@/components/MemberFormModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,11 +28,11 @@ export default function Home() {
   const { user: currentUser } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'calendar'
-  const [activeTab, setActiveTab] = useState<'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents'>(() => {
+  const [activeTab, setActiveTab] = useState<'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents' | 'sla'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('activeTab');
-      if (saved && ['calendar', 'members', 'teams', 'shadows', 'analytics', 'incidents'].includes(saved)) {
-        return saved as 'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents';
+      if (saved && ['calendar', 'members', 'teams', 'shadows', 'analytics', 'incidents', 'sla'].includes(saved)) {
+        return saved as 'calendar' | 'members' | 'teams' | 'shadows' | 'analytics' | 'incidents' | 'sla';
       }
     }
     return 'calendar';
@@ -423,6 +424,19 @@ export default function Home() {
               <span>Analytics</span>
             </button>
             <button
+              onClick={() => setActiveTab('sla')}
+              className={`
+                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
+                ${activeTab === 'sla' 
+                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }
+              `}
+            >
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>SLA</span>
+            </button>
+            <button
               onClick={() => setActiveTab('incidents')}
               className={`
                 flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
@@ -488,6 +502,9 @@ export default function Home() {
             teams={teams}
             assignments={allAssignmentViews}
           />
+        )}
+        {activeTab === 'sla' && (
+          <SLADashboard />
         )}
         {activeTab === 'incidents' && (
           <IncidentList />

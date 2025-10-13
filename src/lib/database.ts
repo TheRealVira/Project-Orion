@@ -281,6 +281,26 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_incident_notifications_incidentId ON incident_notifications(incidentId);
     CREATE INDEX IF NOT EXISTS idx_team_sla_settings_teamId ON team_sla_settings(teamId);
   `);
+
+  // Migration: Add SLA columns to existing incidents table if they don't exist
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(incidents)").all() as Array<{ name: string }>;
+    const columnNames = tableInfo.map(col => col.name);
+    
+    if (!columnNames.includes('firstResponseAt')) {
+      logger.info('🔄 Migrating incidents table: Adding SLA columns...');
+      db.exec(`
+        ALTER TABLE incidents ADD COLUMN firstResponseAt TEXT;
+        ALTER TABLE incidents ADD COLUMN slaResponseDeadline TEXT;
+        ALTER TABLE incidents ADD COLUMN slaResolutionDeadline TEXT;
+        ALTER TABLE incidents ADD COLUMN slaResponseBreached INTEGER DEFAULT 0;
+        ALTER TABLE incidents ADD COLUMN slaResolutionBreached INTEGER DEFAULT 0;
+      `);
+      logger.info('✅ SLA columns added to incidents table');
+    }
+  } catch (err) {
+    logger.error('Error adding SLA columns to incidents table:', err);
+  }
 }
 
 export async function seedInitialData() {

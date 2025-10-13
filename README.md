@@ -85,7 +85,11 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 
 ### 🔍 User Experience
 - **Search Functionality**: Fast search across users, teams, incidents, and shadow assignments
-- **Pagination**: Smart pagination for incidents, users, and teams with configurable page sizes (10, 20, 50, 100)
+- **Smart Pagination**: Auto-hiding pagination for incidents, users, teams, and shadow assignments
+  - Configurable page sizes (10, 20, 50, 100 items)
+  - Automatically hides when all items fit on one page
+  - Smooth page transitions with scroll-to-top
+  - Persists through search and filter operations
 - **Mobile Responsive**: Fully optimized for mobile, tablet, and desktop devices with responsive layouts
 - **Dark Mode**: Built-in dark mode support with persistent theme preference
 - **Real-time Updates**: Changes reflect immediately across all views
@@ -588,6 +592,7 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
   - Shadow assignment system for mentorship/training
   - Incident management with status workflow and auto-assignment
   - Analytics dashboard with CSV export and weekday breakdown
+  - **SLA tracking and management** with business hours support and automatic breach detection ([docs](./SLA_IMPLEMENTATION.md))
 
 - **Integrations**
   - Webhook support for Prometheus, Grafana, Dynatrace, and custom alerts
@@ -599,6 +604,7 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
 
 - **User Experience**
   - Mobile responsive design with dark mode
+  - **Smart pagination** across all major lists with auto-hide and configurable page sizes ([docs](./PAGINATION_IMPLEMENTATION.md))
   - Search functionality across all entities
   - Profile avatars with auto-generated fallbacks
   - Permission system with server-side validation
@@ -612,7 +618,7 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
 
 - **Incident Management**
   - Escalation workflows and policies
-  - SLA tracking and reporting
+  - Advanced SLA reporting and analytics
   - Incident templates
 
 - **Integrations**
