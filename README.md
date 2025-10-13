@@ -76,14 +76,34 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **Visual Indicators**: Color-coded badges and progress bars display SLA status on incident lists and details
 - **Background Monitoring**: Scheduled checks for SLA compliance with automated notifications
 
+### 📈 SLA Dashboard & Analytics
+- **Comprehensive SLA Dashboard**: Dedicated dashboard for monitoring SLA performance with real-time metrics
+- **Visual Pie Charts**: Donut-style pie charts showing response and resolution SLA compliance at a glance
+- **Trend Analysis**: Interactive line and bar charts displaying SLA trends over time (7, 30, 60, or 90 days)
+- **Multi-Chart Visualization**: 
+  - Incident Volume trends with per-team breakdown
+  - SLA Compliance rates for response and resolution
+  - Average response and resolution times tracking
+- **Interactive Charts**: Hover anywhere on trend lines to see detailed data points with cursor tracking
+- **Toggle Chart Types**: Seamlessly switch between line and bar charts with animated toggle controls
+- **Team Filtering**: Filter all metrics and trends by specific teams or view overall performance
+- **Missing Data Handling**: Automatically fills gaps in trend data (0 for counts, 100% for compliance)
+- **Data Export**: Export SLA metrics and trend data to CSV for external reporting and analysis
+- **Responsive Design**: Full mobile support with optimized chart rendering for all screen sizes
+
 ### 📊 Analytics & Reporting
 - **Assignment Statistics**: View detailed assignment statistics with customizable date ranges
 - **Workload Distribution**: Analyze assignment counts per member with visual progress bars
 - **Team Analytics**: Filter statistics by teams and members
-- **CSV Export**: Export analytics data for external reporting
+- **CSV Export**: Export analytics data for external reporting and analysis
+  - Analytics: Assignment statistics and workload distribution
+  - Calendar: On-call schedules with date ranges
+  - SLA Dashboard: SLA metrics, compliance rates, and trend data
 - **Member Comparison**: Compare assignment distribution across team members
+- **Date Range Selection**: Flexible date filtering for historical analysis
 
 ### 🔍 User Experience
+- **Intuitive Navigation**: Organized tab structure (Dashboard → Calendar → Shadowing → Analytics → SLA → Incidents)
 - **Search Functionality**: Fast search across users, teams, incidents, and shadow assignments
 - **Smart Pagination**: Auto-hiding pagination for incidents, users, teams, and shadow assignments
   - Configurable page sizes (10, 20, 50, 100 items)
@@ -94,6 +114,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **Dark Mode**: Built-in dark mode support with persistent theme preference
 - **Real-time Updates**: Changes reflect immediately across all views
 - **Smart Notifications**: Visual alerts for important actions and state changes
+- **Interactive Charts**: Hover tooltips, animated toggles, and responsive visualizations
 
 ### 🔒 Security & Permissions
 - **Session Management**: Secure session-based authentication with HTTP-only cookies
@@ -238,10 +259,12 @@ DEFAULT_ADMIN_PASSWORD=admin123
 1. **Login**: Use the default admin credentials or create a new account
 2. **Create Users**: Navigate to the "Users" tab and add team members
 3. **Create Teams**: Go to "Teams" tab and organize users into teams
-4. **Schedule Assignments**: Use the "Calendar" tab to assign on-call duties
-5. **Track Incidents**: Switch to "Incidents" tab to manage ongoing issues
-6. **Setup Shadows**: Use "Shadows" tab to pair experienced members with new ones
-7. **View Analytics**: Check "Analytics" tab for workload distribution insights
+4. **Configure SLAs**: Set up SLA targets for each team (optional, defaults provided)
+5. **Schedule Assignments**: Use the "Calendar" tab to assign on-call duties
+6. **Track Incidents**: Switch to "Incidents" tab to manage ongoing issues
+7. **Monitor SLAs**: Check "SLA" tab for real-time SLA compliance and trend analysis
+8. **Setup Shadows**: Use "Shadows" tab to pair experienced members with new ones
+9. **View Analytics**: Check "Analytics" tab for workload distribution insights
 
 ## Webhook Integration
 
@@ -463,10 +486,18 @@ Project Orion uses SQLite with WAL mode for production-ready data persistence. T
 - **Framework**: Next.js 14 (App Router) with React 18 and TypeScript 5+
 - **Database**: SQLite with better-sqlite3 (WAL mode)
 - **Styling**: Tailwind CSS 3+ with dark mode support
+- **Charts**: Recharts for interactive data visualization
 - **Icons**: Lucide React
 - **Authentication**: bcrypt, OAuth, LDAP (ldapjs)
 - **Notifications**: nodemailer (email), Twilio (SMS)
 - **Utilities**: date-fns for date handling
+
+### UI Components
+- **ChartToggle**: Reusable animated toggle component for switching between chart types
+  - Smooth sliding indicator animation
+  - Click-anywhere functionality
+  - Full accessibility support (ARIA)
+  - Responsive and mobile-optimized
 
 ### Available Scripts
 ```bash
@@ -593,6 +624,11 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
   - Incident management with status workflow and auto-assignment
   - Analytics dashboard with CSV export and weekday breakdown
   - **SLA tracking and management** with business hours support and automatic breach detection ([docs](./SLA_IMPLEMENTATION.md))
+  - **SLA Dashboard** with interactive charts, trend analysis, and team filtering
+    - Visual pie charts for response and resolution SLA compliance
+    - Interactive line and bar charts with animated toggles
+    - Multi-chart visualization (incident volume, compliance rates, response times)
+    - CSV export for SLA metrics and trend data
 
 - **Integrations**
   - Webhook support for Prometheus, Grafana, Dynatrace, and custom alerts
@@ -605,10 +641,13 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
 - **User Experience**
   - Mobile responsive design with dark mode
   - **Smart pagination** across all major lists with auto-hide and configurable page sizes ([docs](./PAGINATION_IMPLEMENTATION.md))
+  - **Reusable UI components** (ChartToggle with smooth animations)
+  - Interactive data visualization with Recharts
   - Search functionality across all entities
   - Profile avatars with auto-generated fallbacks
   - Permission system with server-side validation
   - Timeline and notes for incident tracking
+  - CSV export across Analytics, Calendar, and SLA dashboards
 
 ### 📋 Planned Features
 - **Scheduling Enhancements**
@@ -618,7 +657,8 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
 
 - **Incident Management**
   - Escalation workflows and policies
-  - Advanced SLA reporting and analytics
+  - Incident postmortem templates and reports
+  - Multi-team incident collaboration
   - Incident templates
 
 - **Integrations**
