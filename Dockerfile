@@ -26,14 +26,23 @@ RUN pnpm install --frozen-lockfile
 # ================================
 FROM node:alpine AS builder
 
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libc6-compat
+
 # Install pnpm globally
 RUN npm install -g pnpm
 
 WORKDIR /app
 
 # Copy dependencies from deps stage
-COPY --from=deps /root/.pnpm-store /root/.pnpm-store
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
 
 # Copy source code
 COPY . .
