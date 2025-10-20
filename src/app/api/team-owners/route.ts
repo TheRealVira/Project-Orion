@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/team-owners - Get all team ownership mappings
 export async function GET() {
   try {

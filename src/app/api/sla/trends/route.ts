@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { subDays, format, startOfDay, eachDayOfInterval } from 'date-fns';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // Helper function to fill in missing dates with default values
 function fillMissingDates(data: any[], startDate: Date, endDate: Date, defaultValue: any) {
   const dateMap = new Map(data.map(item => [item.date, item]));

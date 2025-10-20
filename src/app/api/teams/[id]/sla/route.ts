@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { TeamSLASettings } from '@/types';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/teams/[id]/sla - Get SLA settings for a team
 export async function GET(
   request: NextRequest,

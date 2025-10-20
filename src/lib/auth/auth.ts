@@ -120,7 +120,7 @@ export function getUserByEmail(email: string): User | null {
     SELECT id, email, name, phone, role, authProvider, authProviderId, avatarUrl, isActive, lastLoginAt, 
            createdAt, updatedAt, city, country, timezone, latitude, longitude, locationSource, locationUpdatedAt
     FROM users
-    WHERE email = ? COLLATE NOCASE
+    WHERE email = ? COLLATE NOCASE AND isActive = 1
   `);
 
   return stmt.get(email.toLowerCase()) as User | null;
@@ -134,7 +134,7 @@ export function getUserWithPasswordByEmail(email: string): (User & { password: s
   const stmt = db.prepare(`
     SELECT id, email, name, password, role, authProvider, authProviderId, avatarUrl, isActive, lastLoginAt, createdAt, updatedAt
     FROM users
-    WHERE email = ? COLLATE NOCASE
+    WHERE email = ? COLLATE NOCASE AND isActive = 1
   `);
 
   return stmt.get(email.toLowerCase()) as (User & { password: string | null }) | null;

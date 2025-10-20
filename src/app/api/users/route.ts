@@ -3,6 +3,9 @@ import { getSessionByToken, getUserById, updateUser, updatePassword, updateEmail
 import { getDatabase } from '@/lib/database';
 import { User } from '@/lib/auth';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/users - List all active users
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function GET(request: NextRequest) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
     
-    // Fetch active users with team membership and on-call status
+    // Fetch users with team membership and on-call status
     const users = db.prepare(`
       SELECT u.*, 
              tm.teamId,
@@ -22,7 +25,6 @@ export async function GET(request: NextRequest) {
       LEFT JOIN team_members tm ON u.id = tm.userId
       LEFT JOIN date_assignments da ON da.date = ? AND da.teamId = tm.teamId
       LEFT JOIN assignment_users au ON au.assignmentId = da.id AND au.userId = u.id
-      WHERE u.isActive = 1
       ORDER BY u.name
     `).all(today) as (User & { teamId?: string; onCall?: number })[];
     
@@ -92,8 +94,8 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const insert = db.prepare(`
-      INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, city, country, timezone, latitude, longitude, locationSource, locationUpdatedAt, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, city, country, timezone, latitude, longitude, locationSource, locationUpdatedAt, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insert.run(
@@ -105,7 +107,6 @@ export async function POST(request: NextRequest) {
       role || 'user',
       'local',
       avatarUrl || null, 
-      1, // isActive
       city || null,
       country || null,
       timezone || null,

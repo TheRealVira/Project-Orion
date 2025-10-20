@@ -3,6 +3,9 @@ import { getDatabase } from '@/lib/database';
 import config, { isFeatureEnabled, logger } from '@/lib/config';
 import crypto from 'crypto';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // Helper function to generate fingerprint
 function generateFingerprint(source: string, title: string, metadata: Record<string, any> = {}): string {
   const data = JSON.stringify({ source, title, ...metadata });

@@ -5,6 +5,9 @@ import { calculateSLAStatus, formatMinutes } from '@/lib/utils/sla';
 import { sendSLABreachEmail } from '@/lib/email';
 import { logger } from '@/lib/config';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 /**
  * Background job to check for SLA breaches and send notifications
  * This can be called by a cron job or scheduled task

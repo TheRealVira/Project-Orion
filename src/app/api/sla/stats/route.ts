@@ -3,6 +3,9 @@ import { getDatabase } from '@/lib/database';
 import { calculateSLAStatus } from '@/lib/utils/sla';
 import { Incident, TeamSLASettings } from '@/types';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/sla/stats - Get comprehensive SLA statistics
 export async function GET(request: NextRequest) {
   try {

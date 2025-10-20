@@ -4,6 +4,9 @@ import { getSessionByToken } from '@/lib/auth';
 import { TeamSLASettings } from '@/types';
 import { calculateBusinessMinutes } from '@/lib/utils/sla';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/incidents/[id] - Get a single incident
 export async function GET(
   request: NextRequest,

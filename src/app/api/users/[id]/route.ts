@@ -3,6 +3,9 @@ import { getSessionByToken, getUserById, updateUser, canEditUser } from '@/lib/a
 import { getDatabase } from '@/lib/database';
 import { User } from '@/lib/auth';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/users/[id] - Get user by ID
 export async function GET(
   request: NextRequest,
@@ -226,7 +229,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/users/[id] - Soft delete user (set isActive = 0)
+// DELETE /api/users/[id] - Permanently delete user
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -241,9 +244,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Soft delete by setting isActive to 0
-    const now = new Date().toISOString();
-    db.prepare('UPDATE users SET isActive = 0, updatedAt = ? WHERE id = ?').run(now, userId);
+    // Permanently delete the user (cascade will handle sessions and other related data)
+    db.prepare('DELETE FROM users WHERE id = ?').run(userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

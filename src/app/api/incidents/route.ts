@@ -3,6 +3,9 @@ import { getDatabase } from '@/lib/database';
 import { Incident, TeamSLASettings } from '@/types';
 import { calculateSLADeadline, getResponseTarget, getResolutionTarget } from '@/lib/utils/sla';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/incidents - List all incidents
 export async function GET(request: NextRequest) {
   try {

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { Shadow } from '@/types';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const db = getDatabase();

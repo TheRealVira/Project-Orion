@@ -6,9 +6,7 @@
 .pnpm-debug.log*
 
 # pnpm specific
-# Note: pnpm-lock.yaml should be committed to version control
-# for reproducible builds. Only ignore pnpm workspace if not using it.
-# pnpm-lock.yaml  # DO NOT IGNORE - commit to git
+pnpm-lock.yaml
 pnpm-workspace.yaml
 
 # testing

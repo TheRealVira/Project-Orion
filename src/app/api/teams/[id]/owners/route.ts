@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionByToken } from '@/lib/auth';
 import { getTeamOwners, addTeamOwner, removeTeamOwner, setTeamOwners, canEditTeam } from '@/lib/utils/team-ownership';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // GET /api/teams/[id]/owners - Get all owners of a team
 export async function GET(
   request: NextRequest,

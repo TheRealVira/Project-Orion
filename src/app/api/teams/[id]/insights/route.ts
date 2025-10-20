@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { insightService } from '@/lib/services/insightService';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
