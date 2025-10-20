@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { getSessionByToken } from '@/lib/auth';
 import { TeamSLASettings } from '@/types';
-import { calculateBusinessMinutes } from '@/lib/sla';
+import { calculateBusinessMinutes } from '@/lib/utils/sla';
 
 // GET /api/incidents/[id] - Get a single incident
 export async function GET(

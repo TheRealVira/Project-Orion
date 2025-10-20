@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOAuthConfigs, generateAuthorizationURL } from '@/lib/auth-oauth';
+import { getOAuthConfigs, generateAuthorizationURL } from '@/lib/auth/auth-oauth';
 import { isFeatureEnabled } from '@/lib/config';
 import crypto from 'crypto';
 

@@ -57,7 +57,7 @@ export async function PATCH(
     const userId = params.id;
 
     const body = await request.json();
-    const { role, name, email, phone } = body;
+    const { role, name, email, phone, city, country, timezone, latitude, longitude } = body;
 
     // Check if trying to change role - only admins can do this
     if (role !== undefined && session.user.role !== 'admin') {
@@ -85,6 +85,11 @@ export async function PATCH(
     if (name !== undefined) updates.name = name;
     if (email !== undefined) updates.email = email;
     if (phone !== undefined) updates.phone = phone;
+    if (city !== undefined) updates.city = city;
+    if (country !== undefined) updates.country = country;
+    if (timezone !== undefined) updates.timezone = timezone;
+    if (latitude !== undefined) updates.latitude = latitude;
+    if (longitude !== undefined) updates.longitude = longitude;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
@@ -110,7 +115,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const { name, email, phone, avatarUrl, password, role } = body;
+    const { name, email, phone, avatarUrl, password, role, city, country, timezone, latitude, longitude } = body;
     const userId = params.id;
 
     const db = getDatabase();
@@ -153,6 +158,26 @@ export async function PUT(
       updates.push('role = ?');
       values.push(role);
     }
+    if (city !== undefined) {
+      updates.push('city = ?');
+      values.push(city);
+    }
+    if (country !== undefined) {
+      updates.push('country = ?');
+      values.push(country);
+    }
+    if (timezone !== undefined) {
+      updates.push('timezone = ?');
+      values.push(timezone);
+    }
+    if (latitude !== undefined) {
+      updates.push('latitude = ?');
+      values.push(latitude);
+    }
+    if (longitude !== undefined) {
+      updates.push('longitude = ?');
+      values.push(longitude);
+    }
 
     // Handle password update if provided
     if (password) {
@@ -186,6 +211,11 @@ export async function PUT(
       phone: updatedUser.phone,
       avatarUrl: updatedUser.avatarUrl,
       role: updatedUser.role,
+      city: updatedUser.city,
+      country: updatedUser.country,
+      timezone: updatedUser.timezone,
+      latitude: updatedUser.latitude,
+      longitude: updatedUser.longitude,
       userId: updatedUser.id,
       createdAt: new Date(updatedUser.createdAt),
       updatedAt: new Date(updatedUser.updatedAt),

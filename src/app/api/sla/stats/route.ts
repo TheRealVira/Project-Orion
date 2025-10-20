@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
-import { calculateSLAStatus } from '@/lib/sla';
+import { calculateSLAStatus } from '@/lib/utils/sla';
 import { Incident, TeamSLASettings } from '@/types';
 
 // GET /api/sla/stats - Get comprehensive SLA statistics

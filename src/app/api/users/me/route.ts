@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, phone } = body;
+    const { name, email, phone, city, country, timezone, latitude, longitude } = body;
 
     // Validate fields
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -63,6 +63,18 @@ export async function PATCH(request: NextRequest) {
     const updates: any = {};
     if (name !== undefined) updates.name = name;
     if (phone !== undefined) updates.phone = phone;
+    if (city !== undefined) updates.city = city;
+    if (country !== undefined) updates.country = country;
+    if (timezone !== undefined) updates.timezone = timezone;
+    if (latitude !== undefined) updates.latitude = latitude;
+    if (longitude !== undefined) updates.longitude = longitude;
+    
+    // Track when location was manually updated
+    if (city !== undefined || country !== undefined || timezone !== undefined || 
+        latitude !== undefined || longitude !== undefined) {
+      updates.locationSource = 'manual';
+      updates.locationUpdatedAt = new Date().toISOString();
+    }
 
     if (Object.keys(updates).length > 0) {
       updateUser(session.user.id, updates);

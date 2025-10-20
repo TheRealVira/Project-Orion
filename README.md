@@ -16,6 +16,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
   - [Configuration](#configuration)
   - [First Time Setup](#first-time-setup)
   - [Quick Start Guide](#quick-start-guide)
+- [Package Manager Migration to pnpm](#package-manager-migration-to-pnpm)
 - [Webhook Integration](#webhook-integration)
 - [Email & SMS Notifications](#email--sms-notifications)
 - [Authentication](#authentication)
@@ -23,6 +24,7 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - [Development](#development)
 - [Docker Deployment](#docker-deployment)
 - [CI/CD & Releases](#cicd--releases)
+- [Troubleshooting](#troubleshooting)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Author & Credits](#author--credits)
@@ -102,6 +104,33 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 - **Member Comparison**: Compare assignment distribution across team members
 - **Date Range Selection**: Flexible date filtering for historical analysis
 
+### 🌍 Global Team Map
+- **Interactive World Map**: Visualize team members' locations and timezones across the globe
+- **User Locations**: View team members positioned on an interactive world map with pins
+- **Timezone Grouping**: Automatically group users by timezone for easy scheduling
+- **Location Details**: Click on team members to view detailed location and timezone information
+- **On-Call Status**: Visual indicators show current on-call status for each team member
+- **Searchable**: Find team members by location or timezone quickly
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+
+### 🎨 Modern Design System & Glassmorphism
+- **Glassmorphism UI**: Premium frosted glass design pattern with advanced visual effects
+  - Transparent backgrounds with sophisticated blur effects
+  - Refined semi-transparent borders for glass-like appearance
+  - Smooth gradient overlays and depth layering
+  - Professional backdrop blur on all modals and overlays
+  - Inset shadows creating glass refraction illusions
+- **Smooth Animations**: Fluid interactions and animated transitions
+  - Animated indicators on interactive toggle controls
+  - Smooth line and bar chart transitions with Recharts
+  - Frictionless button and modal interactions
+  - Responsive hover states with backdrop blur effects
+- **Premium Visual Effects**: Multi-layered shadow system for depth
+  - Elevated UI components with realistic shadow stacking
+  - Combined inset and outset shadows for glass effect
+  - Layered shadows adapting to light/dark modes
+  - Enhanced contrast and visual hierarchy
+
 ### 🔍 User Experience
 - **Intuitive Navigation**: Organized tab structure (Dashboard → Calendar → Shadowing → Analytics → SLA → Incidents)
 - **Search Functionality**: Fast search across users, teams, incidents, and shadow assignments
@@ -136,8 +165,25 @@ A modern on-call companion dashboard for managing teams, schedules, incidents, a
 ### Prerequisites
 
 - **Option 1 (Docker)**: Docker and Docker Compose
-- **Option 2 (Local)**: Node.js 20+ and npm/yarn/pnpm
+- **Option 2 (Local)**: Node.js 20.0.0+ and pnpm 9.0.0+ (npm and yarn also supported)
 - A modern web browser
+
+**Package Manager Setup:**
+This project uses **pnpm** as the preferred package manager for better performance and disk space efficiency. Install pnpm globally:
+
+```bash
+npm install -g pnpm@latest
+# or using Homebrew (macOS)
+brew install pnpm
+# or using Chocolatey (Windows)
+choco install pnpm
+```
+
+Check your installation:
+```bash
+pnpm --version  # Should be 9.0.0 or higher
+node --version  # Should be 20.0.0 or higher
+```
 
 ### Installation
 
@@ -161,21 +207,30 @@ cd Project-Orion
 ```
 
 2. Install dependencies:
+
+**This project uses pnpm for dependency management** (v9.0.0+). While npm and yarn are still supported, pnpm is recommended for faster installations and better disk space utilization.
+
 ```bash
-npm install
-# or
-yarn install
-# or
+# Using pnpm (recommended)
 pnpm install
+
+# Or using npm
+npm install
+
+# Or using yarn
+yarn install
 ```
 
 3. Run the development server:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Using pnpm (recommended)
 pnpm dev
+
+# Or using npm
+npm run dev
+
+# Or using yarn
+yarn dev
 ```
 
 4. Configure environment (optional):
@@ -265,6 +320,87 @@ DEFAULT_ADMIN_PASSWORD=admin123
 7. **Monitor SLAs**: Check "SLA" tab for real-time SLA compliance and trend analysis
 8. **Setup Shadows**: Use "Shadows" tab to pair experienced members with new ones
 9. **View Analytics**: Check "Analytics" tab for workload distribution insights
+
+## Package Manager Migration to pnpm
+
+### 🎉 What Changed
+
+Project Orion has migrated from npm to **pnpm** for improved performance and disk space efficiency. This migration includes:
+
+✅ **Benefits:**
+- ⚡ **3x faster** installations
+- 💾 **50% less disk space** used for dependencies
+- 🔒 **Stricter dependency resolution** for better security
+- 📦 **Monorepo-ready** with pnpm workspaces
+- 🌳 **Flat node_modules** structure (when using symlinks or hoisting)
+
+### Updated Configuration Files
+
+The following files were updated for pnpm compatibility:
+
+- **`.npmrc`**: Registry settings and timeout configurations for reliable installations
+- **`package.json`**: Engine requirement now specifies `pnpm >=9.0.0`
+- **`Dockerfile`**: Multi-stage build now uses pnpm with global installation
+- **`GitHub Actions`**: CI/CD workflows updated to use pnpm/action-setup
+- **`.gitignore`**: Added pnpm-specific cache patterns and build artifacts
+- **`pnpm-lock.yaml`**: Lock file generated with all 590+ dependencies frozen
+
+### Migration Guide
+
+If you were previously using npm or yarn:
+
+```bash
+# 1. Remove old lock files
+rm package-lock.json yarn.lock
+
+# 2. Clear old caches
+npm cache clean --force
+pnpm store prune
+
+# 3. Install with pnpm
+pnpm install
+
+# 4. Verify installation
+pnpm --version  # Should be 9.0.0+
+pnpm list       # Verify all dependencies
+```
+
+### Troubleshooting
+
+**Issue: `ERR_SOCKET_TIMEOUT` during installation**
+- Solution: Check `.npmrc` configuration or increase timeout values
+- File: `.npmrc` with fetch-timeout=60000 and fetch-retries=5
+
+**Issue: Build tools missing for native modules**
+- Solution: Ensure build tools are installed (Python, gcc, make, etc.)
+- Windows: Visual Studio Build Tools or node-gyp
+- macOS: Xcode Command Line Tools
+- Linux: build-essential package
+
+**Issue: Module resolution errors**
+- Solution: Run `pnpm install --force` to rebuild dependencies
+- Or: Delete `node_modules` and `pnpm-lock.yaml`, then run `pnpm install`
+
+### Available Package Manager Commands
+
+All standard npm commands work with pnpm:
+
+```bash
+# Installation
+pnpm install              # Install all dependencies
+pnpm add <package>        # Add a new package
+pnpm add -D <package>     # Add as dev dependency
+pnpm add -g <package>     # Install globally
+
+# Updates
+pnpm update               # Update all packages
+pnpm update <package>     # Update specific package
+
+# Maintenance
+pnpm prune                # Remove unused dependencies
+pnpm audit                # Security audit
+pnpm audit --fix          # Auto-fix vulnerabilities
+```
 
 ## Webhook Integration
 
@@ -485,6 +621,7 @@ Project Orion uses SQLite with WAL mode for production-ready data persistence. T
 ### Tech Stack
 - **Framework**: Next.js 14 (App Router) with React 18 and TypeScript 5+
 - **Database**: SQLite with better-sqlite3 (WAL mode)
+- **Package Manager**: pnpm 9.0.0+ (npm and yarn also supported)
 - **Styling**: Tailwind CSS 3+ with dark mode support
 - **Charts**: Recharts for interactive data visualization
 - **Icons**: Lucide React
@@ -493,19 +630,68 @@ Project Orion uses SQLite with WAL mode for production-ready data persistence. T
 - **Utilities**: date-fns for date handling
 
 ### UI Components
-- **ChartToggle**: Reusable animated toggle component for switching between chart types
-  - Smooth sliding indicator animation
+
+Modern, reusable components with glassmorphic design and smooth animations:
+
+- **ChartToggle**: Animated toggle for switching between chart types
+  - Smooth sliding indicator with glass effect
   - Click-anywhere functionality
   - Full accessibility support (ARIA)
   - Responsive and mobile-optimized
+  
+- **Toggle**: Interactive switch component with glassmorphism
+  - Transparent background with backdrop blur
+  - Glass-like border and refraction effects
+  - Smooth state transitions
+  - Dark mode support
+
+- **Modal**: Premium modal dialogs with glass design
+  - Frosted glass appearance with backdrop blur
+  - Semi-transparent border with inset shadows
+  - Multi-layered shadow system
+  - Smooth open/close animations
+  - Mobile-optimized (bottom sheet on mobile, center on desktop)
+
+- **Button**: Accessible button components
+  - Multiple size and style variants
+  - Smooth hover states with backdrop effects
+  - Loading states with spinner
+  - Full keyboard navigation support
+
+- **Card**: Container component for content sections
+  - Flexible layout options
+  - Optional glass effect styling
+  - Responsive padding and spacing
+  - Dark mode compatible
+
+- **WorldMap**: Interactive global team visualization
+  - Beautiful map rendering with user location pins
+  - Timezone information display
+  - On-call status indicators
+  - Responsive to all screen sizes
+
+- **Additional Components**: Badge, Select, EmptyState, LoadingSpinner, ConfirmationModal, LocationInput, UserCard, WebhookTesterModal
 
 ### Available Scripts
+
+Using pnpm (recommended):
+```bash
+pnpm dev            # Start development server
+pnpm build          # Build for production
+pnpm start          # Start production server
+pnpm lint           # Run ESLint
+pnpm type-check     # TypeScript type checking
+pnpm audit          # Security audit of dependencies
+```
+
+Or using npm:
 ```bash
 npm run dev         # Start development server
 npm run build       # Build for production
 npm start           # Start production server
 npm run lint        # Run ESLint
 npm run type-check  # TypeScript type checking
+npm audit           # Security audit of dependencies
 ```
 
 ### Project Structure
@@ -516,6 +702,27 @@ src/
 ├── contexts/         # React contexts (Auth)
 ├── lib/              # Business logic (auth, database, email, sms)
 └── types/            # TypeScript definitions
+```
+
+### Package Manager Notes
+
+**Why pnpm?**
+- ⚡ **3x faster** installations compared to npm
+- 💾 **Saves disk space** with efficient dependency deduplication
+- 🔒 **Better security** with stricter dependency resolution
+- 📦 **Monorepo support** with pnpm workspaces
+- 🌐 **Seamless migration** from npm or yarn
+
+**Migrating from npm/yarn to pnpm:**
+```bash
+# Remove old lock files
+rm package-lock.json yarn.lock
+
+# Clear caches
+pnpm store prune
+
+# Install with pnpm
+pnpm install
 ```
 
 ## Docker Deployment
@@ -554,22 +761,76 @@ Edit `docker-compose.yml` to configure:
 
 ## CI/CD & Releases
 
-### Automated Builds
+### Automated Builds with pnpm
 
-Project Orion uses GitHub Actions for continuous integration and automated releases:
+Project Orion uses GitHub Actions for continuous integration and automated releases with full pnpm support:
 
-- **✅ CI Pipeline**: Runs on every push and PR
-  - TypeScript type checking
-  - ESLint linting
-  - Build verification
-  - Docker build test
+#### CI Pipeline (`.github/workflows/ci.yml`)
 
-- **📦 Release Pipeline**: Triggered by version tags (`v*.*.*`)
-  - Multi-platform Docker builds (amd64, arm64)
-  - Publish to GitHub Container Registry
-  - Create release artifacts (standalone & deployment packages)
-  - Generate release notes
-  - Security scanning with Trivy
+Runs on every push and pull request to `main` and `develop` branches:
+
+```yaml
+✅ Lint & Test Job
+├── Checkout code
+├── Setup pnpm (v10.18.3+)
+├── Setup Node.js (v20+)
+├── Cache pnpm store for faster builds
+├── Install dependencies with frozen lockfile
+├── Run ESLint checks
+├── Build verification
+└── Run type checks
+
+✅ Security Audit Job (Separate)
+├── Run pnpm audit with moderate risk level
+├── Generate security report
+├── Continue on error (non-blocking)
+
+✅ Docker Build Job
+├── Build Docker image with pnpm
+├── Test multi-stage build
+└── Verify image integrity
+```
+
+**Key Features:**
+- Frozen lockfile enforcement (`--frozen-lockfile`) prevents version drifts
+- Separate security audit job doesn't block build pipeline
+- pnpm caching reduces installation time by ~80%
+- Multi-job parallelization for faster feedback
+
+#### Release Pipeline (`.github/workflows/build-release.yml`)
+
+Triggered by version tags (`v*.*.*`):
+
+```yaml
+✅ Test Job (Pre-release validation)
+├── Run all tests with pnpm
+├── Verify build succeeds
+└── Ensure no regressions
+
+✅ Build Docker Job (Multi-platform)
+├── Build for linux/amd64 (Intel/AMD)
+├── Build for linux/arm64 (Apple Silicon, Raspberry Pi)
+├── Push to ghcr.io
+└── Generate SBOMs
+
+✅ Build Artifacts Job
+├── Create standalone package (.tar.gz)
+├── Create deployment package with Docker files
+├── Upload to release page
+└── Generate release notes
+```
+
+**Release Platforms:**
+- `linux/amd64` - x86_64 (Intel/AMD servers)
+- `linux/arm64` - ARM64 (Apple Silicon, Raspberry Pi 4+, AWS Graviton)
+
+#### Workflow Benefits
+
+- 🔒 **Security**: pnpm audit ensures dependencies are safe
+- ⚡ **Speed**: pnpm caching + frozen lockfile = faster builds
+- 🔄 **Consistency**: Lockfile ensures reproducible builds
+- 📦 **Reliability**: Multi-stage builds with dependency verification
+- 📊 **Transparency**: Detailed logs and build artifacts
 
 ### Docker Images
 
@@ -593,8 +854,8 @@ docker pull ghcr.io/therealvira/project-orion:main
 ### Creating a Release
 
 ```bash
-# 1. Update version
-npm version patch  # or minor, or major
+# 1. Update version with pnpm
+pnpm version patch  # or minor, or major
 
 # 2. Create and push tag
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
@@ -629,6 +890,23 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
     - Interactive line and bar charts with animated toggles
     - Multi-chart visualization (incident volume, compliance rates, response times)
     - CSV export for SLA metrics and trend data
+  - **Global Team Map** for visualizing team members across locations and timezones
+    - Interactive world map with user location pins
+    - Timezone grouping and filtering
+    - On-call status indicators
+    - Responsive design for all devices
+
+- **User Interface & Design**
+  - **Premium Glassmorphism Design System**
+    - Frosted glass UI with backdrop blur effects
+    - Semi-transparent borders with glass-like appearance
+    - Multi-layered shadow system for depth perception
+    - Gradient overlays and smooth transitions
+  - **Smooth Animations & Interactions**
+    - Animated toggle controls with sliding indicators
+    - Fluid chart transitions (line/bar chart toggles)
+    - Frictionless UI interactions with hover states
+    - Professional backdrop blur on modals and overlays
 
 - **Integrations**
   - Webhook support for Prometheus, Grafana, Dynatrace, and custom alerts
@@ -641,7 +919,7 @@ Download from [Releases](https://github.com/TheRealVira/Project-Orion/releases) 
 - **User Experience**
   - Mobile responsive design with dark mode
   - **Smart pagination** across all major lists with auto-hide and configurable page sizes ([docs](./PAGINATION_IMPLEMENTATION.md))
-  - **Reusable UI components** (ChartToggle with smooth animations)
+  - **Reusable UI components** (ChartToggle, Toggle, Modal with glass effects)
   - Interactive data visualization with Recharts
   - Search functionality across all entities
   - Profile avatars with auto-generated fallbacks

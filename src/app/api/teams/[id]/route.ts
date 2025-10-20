@@ -24,7 +24,7 @@ export async function PUT(
     const insertTeamUser = db.prepare('INSERT INTO team_members (teamId, userId) VALUES (?, ?)');
 
 
-    const { setTeamOwners } = require('@/lib/team-ownership');
+    const { setTeamOwners } = require('@/lib/utils/team-ownership');
     const transaction = db.transaction(() => {
       const result = updateTeam.run(name, description || null, color, now, id);
       if (result.changes === 0) {

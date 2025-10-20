@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { TeamSLASettings, Incident } from '@/types';
-import { calculateSLAStatus, formatMinutes } from '@/lib/sla';
+import { calculateSLAStatus, formatMinutes } from '@/lib/utils/sla';
 import { sendSLABreachEmail } from '@/lib/email';
 import { logger } from '@/lib/config';
 

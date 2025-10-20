@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser, createSession, seedAdminUser } from '@/lib/auth';
-import { authenticateLDAP } from '@/lib/auth-ldap';
+import { authenticateLDAP } from '@/lib/auth/auth-ldap';
 
 // Initialize admin user on first load
 seedAdminUser().catch(console.error);

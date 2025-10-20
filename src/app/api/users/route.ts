@@ -7,8 +7,24 @@ import { User } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const db = getDatabase();
-    // Fetch active users and return in member-compatible format
-    const users = db.prepare('SELECT * FROM users WHERE isActive = 1 ORDER BY name').all() as User[];
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Fetch active users with team membership and on-call status
+    const users = db.prepare(`
+      SELECT u.*, 
+             tm.teamId,
+             CASE 
+               WHEN au.userId IS NOT NULL THEN 1 
+               ELSE 0 
+             END as onCall
+      FROM users u
+      LEFT JOIN team_members tm ON u.id = tm.userId
+      LEFT JOIN date_assignments da ON da.date = ? AND da.teamId = tm.teamId
+      LEFT JOIN assignment_users au ON au.assignmentId = da.id AND au.userId = u.id
+      WHERE u.isActive = 1
+      ORDER BY u.name
+    `).all(today) as (User & { teamId?: string; onCall?: number })[];
     
     // Convert to member format for UI compatibility
     const members = users.map(u => ({
@@ -20,7 +36,16 @@ export async function GET(request: NextRequest) {
       role: u.role,
       authProvider: u.authProvider,
       authProviderId: u.authProviderId,
+      teamId: u.teamId,
       userId: u.id, // Self-reference for unified system
+      city: u.city,
+      country: u.country,
+      timezone: u.timezone,
+      latitude: u.latitude,
+      longitude: u.longitude,
+      locationSource: u.locationSource,
+      locationUpdatedAt: u.locationUpdatedAt,
+      onCall: u.onCall === 1, // Convert from SQLite integer to boolean
       createdAt: new Date(u.createdAt),
       updatedAt: new Date(u.updatedAt),
     }));
@@ -36,7 +61,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, avatarUrl, password, role } = body;
+    const { name, email, phone, avatarUrl, password, role, city, country, timezone, latitude, longitude } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
@@ -67,8 +92,8 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const insert = db.prepare(`
-      INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, name, password, phone, role, authProvider, avatarUrl, isActive, city, country, timezone, latitude, longitude, locationSource, locationUpdatedAt, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insert.run(
@@ -81,6 +106,13 @@ export async function POST(request: NextRequest) {
       'local',
       avatarUrl || null, 
       1, // isActive
+      city || null,
+      country || null,
+      timezone || null,
+      latitude || null,
+      longitude || null,
+      (city || country) ? 'manual' : null,
+      (city || country) ? now : null,
       now, 
       now
     );

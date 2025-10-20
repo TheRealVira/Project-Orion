@@ -26,16 +26,21 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  // Add security headers to allow external images (Google OAuth avatars)
-  // Note: CSP is intentionally relaxed for img-src to support OAuth profile pictures
+  // Add security headers to allow external resources
+  // Note: CSP is intentionally relaxed to support:
+  // - OAuth profile pictures (img-src)
+  // - Geocoding APIs (connect-src for nominatim.openstreetmap.org)
+  // - Timezone lookup APIs (connect-src for api.wheretheiss.at)
+  // - Map tiles (connect-src for tile.openstreetmap.org)
+  // - Leaflet CSS (style-src for cdnjs.cloudflare.com)
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
     "img-src 'self' data: https: blob:; " +
     "font-src 'self' data:; " +
-    "connect-src 'self';"
+    "connect-src 'self' https://api.wheretheiss.at https://cdn.jsdelivr.net https://*.openstreetmap.org;"
   );
 
   // Allow images from any HTTPS source (including Google)

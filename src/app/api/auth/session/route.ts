@@ -34,6 +34,13 @@ export async function GET(request: NextRequest) {
         lastLoginAt: session.user.lastLoginAt,
         createdAt: session.user.createdAt,
         updatedAt: session.user.updatedAt,
+        city: session.user.city,
+        country: session.user.country,
+        timezone: session.user.timezone,
+        latitude: session.user.latitude,
+        longitude: session.user.longitude,
+        locationSource: session.user.locationSource,
+        locationUpdatedAt: session.user.locationUpdatedAt,
       },
     });
   } catch (error) {

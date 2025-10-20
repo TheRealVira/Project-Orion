@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOAuthConfigs, handleOAuthCallback } from '@/lib/auth-oauth';
+import { getOAuthConfigs, handleOAuthCallback } from '@/lib/auth/auth-oauth';
 import { createSession } from '@/lib/auth';
 import appConfig, { isFeatureEnabled } from '@/lib/config';
 

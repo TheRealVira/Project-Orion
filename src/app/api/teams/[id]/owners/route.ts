@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionByToken } from '@/lib/auth';
-import { getTeamOwners, addTeamOwner, removeTeamOwner, setTeamOwners, canEditTeam } from '@/lib/team-ownership';
+import { getTeamOwners, addTeamOwner, removeTeamOwner, setTeamOwners, canEditTeam } from '@/lib/utils/team-ownership';
 
 // GET /api/teams/[id]/owners - Get all owners of a team
 export async function GET(

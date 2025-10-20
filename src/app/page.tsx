@@ -1,27 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
-import { Calendar, Users, UserPlus, Eye, BarChart3, Bell, Clock } from 'lucide-react';
+import { Calendar, Users, UserPlus, Eye, BarChart3, Bell, Clock, Zap } from 'lucide-react';
 import { DateAssignmentView, Member, Team, DateAssignment, Shadow } from '@/types';
-import { KofiIcon } from '@/components/BrandIcons';
-import AnimatedHeart from '@/components/AnimatedHeart';
-import AnimatedSparkles from '@/components/AnimatedSparkles';
+import { KofiIcon, AnimatedHeart, AnimatedSparkles, ThemeToggle } from '@/components/shared';
 import { 
   memberService, 
   teamService, 
   assignmentService, 
   shadowService 
 } from '@/lib/services';
-import CalendarView from '@/components/CalendarView';
-import UserList from '@/components/UserList';
-import TeamList from '@/components/TeamList';
-import ShadowList from '@/components/ShadowList';
-import AnalyticsView from '@/components/AnalyticsView';
-import IncidentList from '@/components/IncidentList';
-import SLADashboard from '@/components/SLADashboard';
-import UserProfile from '@/components/UserProfile';
-import MemberFormModal from '@/components/MemberFormModal';
+import { CalendarView } from '@/components/features/assignments';
+import { UserList, UserProfile, UserFormModal } from '@/components/features/users';
+import { TeamsTable, TeamsList } from '@/components/features/teams';
+import { ShadowList } from '@/components/features/shadows';
+import { AnalyticsView } from '@/components/features/analytics';
+import { IncidentList } from '@/components/features/incidents';
+import { SLADashboard } from '@/components/features/sla';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
@@ -41,6 +37,61 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [tabIndicatorStyle, setTabIndicatorStyle] = useState({ left: 0, width: 0, opacity: 1 });
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Update tab indicator position when activeTab changes
+  useLayoutEffect(() => {
+    const tabs = ['calendar', 'members', 'teams', 'shadows', 'analytics', 'insights', 'sla', 'incidents'];
+
+    const updateIndicator = () => {
+      const activeIndex = tabs.indexOf(activeTab);
+      const activeButton = tabRefs.current[activeIndex];
+      const container = tabContainerRef.current;
+
+      if (activeButton && container) {
+        // Use offsetLeft/offsetWidth so we calculate position inside the scrollable container
+        const left = (activeButton as HTMLElement).offsetLeft - (container as HTMLElement).scrollLeft;
+        const width = (activeButton as HTMLElement).offsetWidth;
+
+        if (width > 0) {
+          setTabIndicatorStyle({ left, width, opacity: 1 });
+        }
+      }
+    };
+
+    // Run synchronously to avoid flicker
+    updateIndicator();
+
+    // If the nav scrolls (mobile), update indicator
+    const container = tabContainerRef.current;
+    let ro: ResizeObserver | null = null;
+
+    const onScroll = () => updateIndicator();
+    const onResize = () => updateIndicator();
+
+    window.addEventListener('resize', onResize);
+    if (container) container.addEventListener('scroll', onScroll, { passive: true });
+
+    // Observe size changes of the container and buttons
+    if (window.ResizeObserver && container) {
+      ro = new ResizeObserver(updateIndicator);
+      ro.observe(container);
+      // observe each button too
+      tabRefs.current.forEach(btn => { if (btn) ro!.observe(btn); });
+    }
+
+    // Extra delayed attempts for edge rendering cases
+    const timers = [10, 50, 100, 200, 500].map(t => setTimeout(updateIndicator, t));
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      if (container) container.removeEventListener('scroll', onScroll);
+      timers.forEach(t => clearTimeout(t));
+      if (ro) ro.disconnect();
+    };
+  }, [activeTab]);
   
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -338,7 +389,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
+      <header className="glass-header sticky top-0 z-[100]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -347,7 +398,8 @@ export default function Home() {
                 Project Orion
               </h1>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <ThemeToggle />
               <UserProfile onEditProfile={handleEditProfile} />
             </div>
           </div>
@@ -355,101 +407,135 @@ export default function Home() {
       </header>
 
       {/* Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 mt-4 sm:mt-6 sticky top-[68px] sm:top-[92px] z-30 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pb-2">
-        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto overflow-y-hidden scrollbar-hide">
-          <nav className="-mb-px flex space-x-4 sm:space-x-8 min-w-max sm:min-w-0">
-            <button
-              onClick={() => setActiveTab('calendar')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'calendar' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 mt-4 sm:mt-6 sticky top-[68px] sm:top-[92px] z-[90] pb-2">
+        <div className="relative">
+          {/* Left scroll indicator */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 dark:from-gray-900 via-gray-100/80 dark:via-gray-900/80 to-transparent pointer-events-none z-20 rounded-l-2xl md:hidden" />
+          {/* Right scroll indicator */}
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 dark:from-gray-900 via-gray-100/80 dark:via-gray-900/80 to-transparent pointer-events-none z-20 rounded-r-2xl md:hidden" />
+          <div className="glass-nav px-2 sm:px-4 py-2">
+            <nav 
+              ref={tabContainerRef}
+              className="relative flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto overflow-y-hidden scrollbar-hide"
             >
+            {/* Animated sliding indicator */}
+            <div
+              className="absolute top-0 bottom-0 bg-primary-500/40 dark:bg-primary-400/50 rounded-lg transition-all duration-300 ease-in-out pointer-events-none z-20 border border-primary-600/60 dark:border-primary-300/50"
+              style={{
+                left: `${tabIndicatorStyle.left}px`,
+                width: `${tabIndicatorStyle.width}px`,
+                display: tabIndicatorStyle.width > 0 ? 'block' : 'none',
+                backdropFilter: 'blur(12px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), inset 0 -1px 2px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+              }}
+            >
+              {/* Top edge gradient for glass refraction effect */}
+              <div
+                className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/50 dark:via-white/30 to-transparent"
+              />
+            </div>
+            
+            <button
+              ref={el => { tabRefs.current[0] = el; }}
+              onClick={() => setActiveTab('calendar')}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'calendar' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
+            >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Calendar</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[1] = el; }}
               onClick={() => setActiveTab('members')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'members' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'members' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Users</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[2] = el; }}
               onClick={() => setActiveTab('teams')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'teams' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'teams' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <Users className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Teams</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[3] = el; }}
               onClick={() => setActiveTab('shadows')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'shadows' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'shadows' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Shadowing</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[4] = el; }}
               onClick={() => setActiveTab('analytics')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'analytics' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'analytics' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Analytics</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[5] = el; }}
               onClick={() => setActiveTab('sla')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'sla' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'sla' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>SLA</span>
+              </div>
             </button>
             <button
+              ref={el => { tabRefs.current[6] = el; }}
               onClick={() => setActiveTab('incidents')}
-              className={`
-                flex items-center space-x-1 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
-                ${activeTab === 'incidents' 
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }
-              `}
+              className={`relative py-2 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-colors duration-200 whitespace-nowrap z-30 ${
+                activeTab === 'incidents' 
+                  ? 'text-primary-900 dark:text-white font-semibold' 
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
             >
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap">
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Incidents</span>
+              </div>
             </button>
           </nav>
+        </div>
         </div>
       </div>
 
@@ -471,19 +557,17 @@ export default function Home() {
         {activeTab === 'members' && (
           <UserList 
             members={members}
+            teams={teams}
             onCreateMember={handleCreateMember}
             onUpdateMember={handleUpdateMember}
             onDeleteMember={handleDeleteMember}
           />
         )}
         {activeTab === 'teams' && (
-          <TeamList 
-            teams={teams} 
+          <TeamsList
+            teams={teams}
             members={members}
             users={users}
-            onCreateTeam={handleCreateTeam}
-            onUpdateTeam={handleUpdateTeam}
-            onDeleteTeam={handleDeleteTeam}
           />
         )}
         {activeTab === 'shadows' && (
@@ -512,7 +596,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+      <footer className="glass-header mt-auto shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -576,7 +660,7 @@ export default function Home() {
 
       {/* Profile Edit Modal */}
       {currentUser && (
-        <MemberFormModal
+        <UserFormModal
           isOpen={isEditingProfile}
           onClose={handleCloseProfileModal}
           onSave={handleUpdateProfile}

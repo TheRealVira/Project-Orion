@@ -35,7 +35,6 @@ function initializeDatabase() {
   // Migration: Drop deprecated members table (now using users table directly)
   try {
     db.exec(`DROP TABLE IF EXISTS members`);
-    logger.info('✅ Dropped deprecated members table');
   } catch (err) {
     logger.error('Error dropping members table:', err);
   }
@@ -300,6 +299,28 @@ function initializeDatabase() {
     }
   } catch (err) {
     logger.error('Error adding SLA columns to incidents table:', err);
+  }
+
+  // Migration: Add location columns to users table if they don't exist
+  try {
+    const userTableInfo = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
+    const userColumnNames = userTableInfo.map(col => col.name);
+    
+    if (!userColumnNames.includes('city')) {
+      logger.info('🔄 Migrating users table: Adding location columns...');
+      db.exec(`
+        ALTER TABLE users ADD COLUMN city TEXT;
+        ALTER TABLE users ADD COLUMN country TEXT;
+        ALTER TABLE users ADD COLUMN timezone TEXT;
+        ALTER TABLE users ADD COLUMN latitude REAL;
+        ALTER TABLE users ADD COLUMN longitude REAL;
+        ALTER TABLE users ADD COLUMN locationSource TEXT CHECK (locationSource IN ('manual', 'oauth', 'ldap', 'auto'));
+        ALTER TABLE users ADD COLUMN locationUpdatedAt TEXT;
+      `);
+      logger.info('✅ Location columns added to users table');
+    }
+  } catch (err) {
+    logger.error('Error adding location columns to users table:', err);
   }
 }
 

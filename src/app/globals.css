@@ -2,49 +2,147 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 17, 24, 39;
-    --background-end-rgb: 17, 24, 39;
-  }
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  @apply text-black dark:text-white bg-page-light dark:bg-page-dark;
 }
 
 @layer components {
+  /* Apple-inspired glassmorphism buttons */
   .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors;
+    @apply px-4 py-2 bg-primary-500/40 dark:bg-primary-400/50 text-primary-900 dark:text-white rounded-xl hover:bg-primary-500/50 dark:hover:bg-primary-400/60 transition-all duration-200 border border-primary-600/60 dark:border-primary-300/50 font-semibold shadow-btn-primary-light;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
   }
   
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors;
+    @apply px-4 py-2 bg-gray-300/50 dark:bg-gray-600/50 text-gray-900 dark:text-white rounded-xl hover:bg-gray-400/50 dark:hover:bg-gray-500/50 transition-all duration-200 border border-gray-500/50 dark:border-gray-400/50 shadow-btn-secondary-light;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
   }
 
+  /* Glass card with blur effect */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700;
+    @apply bg-glass-light dark:bg-glass-dark rounded-3xl p-6 relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
   }
 
+  /* Glass input fields */
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-3 py-2 border border-gray-300/50 dark:border-white/10 rounded-xl bg-white/50 dark:bg-gray-700/50 backdrop-blur-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-200;
   }
 
   .label {
     @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+  
+  /* Glass modal overlay */
+  .modal-overlay {
+    @apply fixed inset-0 backdrop-blur-sm z-50;
+    border-radius: 20px;
+  }
+
+  /* Glass modal content */
+  .modal-content {
+    @apply bg-glass-light dark:bg-glass-dark rounded-3xl relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+
+  .modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
+  }
+
+  /* Glass dropdown menu */
+  .glass-dropdown {
+    @apply bg-glass-light dark:bg-glass-dark rounded-2xl relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+  
+  .glass-dropdown::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
+  }
+
+  /* Glass header/footer */
+  .glass-header {
+    @apply bg-glass-light dark:bg-glass-dark rounded-2xl relative border-b border-glass-light dark:border-glass-light shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+
+  /* Glass navigation container */
+  .glass-nav {
+    @apply bg-glass-light dark:bg-glass-dark rounded-2xl relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+  
+  .glass-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
+  }
+
+  /* Glass tab button - inactive state */
+  .glass-tab {
+    @apply relative py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100;
+  }
+
+  /* Glass tab button - active state */
+  .glass-tab-active {
+    @apply relative py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 text-primary-700 dark:text-white font-semibold;
+  }
+
+  /* Glass popup/modal cards */
+  .glass-popup {
+    @apply bg-glass-light dark:bg-glass-dark rounded-2xl relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+  
+  .glass-popup::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
+  }
+
+  /* Glass info bar (Legend/Status) */
+  .glass-bar {
+    @apply bg-glass-light dark:bg-glass-dark backdrop-blur-md border border-glass-light dark:border-glass-dark;
+  }
+
+  /* Glass tooltip */
+  .glass-tooltip {
+    @apply bg-glass-light dark:bg-glass-dark rounded-2xl relative border border-glass-light dark:border-glass-dark shadow-glass-md dark:shadow-glass-dark-md backdrop-blur-md;
+  }
+  
+  .glass-tooltip::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    @apply bg-glass-shine-light dark:bg-glass-shine-dark;
   }
 
   /* Hide scrollbar but keep functionality */
@@ -56,4 +154,39 @@ body {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
+
+  /* Leaflet map custom marker styles */
+  .custom-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+}
+
+/* Custom spin animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Ring blink animation for on-call indicators */
+@keyframes ring-blink-animation {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgb(239, 68, 68);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4);
+  }
+}
+
+.animate-ring-blink {
+  animation: ring-blink-animation 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 0 0 2px rgb(239, 68, 68);
 }

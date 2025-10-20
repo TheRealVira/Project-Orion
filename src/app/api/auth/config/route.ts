@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAvailableOAuthProviders } from '@/lib/auth-oauth';
-import { getLDAPConfig } from '@/lib/auth-ldap';
+import { getAvailableOAuthProviders } from '@/lib/auth/auth-oauth';
+import { getLDAPConfig } from '@/lib/auth/auth-ldap';
 import { isFeatureEnabled } from '@/lib/config';
 
 export async function GET(request: NextRequest) {

@@ -4,9 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, Key, Server, Github, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { GoogleIcon, MicrosoftIcon, GitLabIcon, KofiIcon } from '@/components/BrandIcons';
-import AnimatedHeart from '@/components/AnimatedHeart';
-import AnimatedSparkles from '@/components/AnimatedSparkles';
+import { GoogleIcon, MicrosoftIcon, GitLabIcon, KofiIcon, AnimatedHeart, AnimatedSparkles } from '@/components/shared';
 
 interface AuthConfig {
   local: boolean;
@@ -142,15 +140,20 @@ function LoginForm() {
 
           {/* Auth Method Tabs */}
           {authConfig.local && authConfig.ldap && (
-            <div className="flex gap-2 mb-6 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="flex gap-2 mb-6 p-1 bg-white/10 dark:bg-white/5 backdrop-blur-md rounded-xl border border-gray-300/30 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => setAuthMethod('local')}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   authMethod === 'local'
-                    ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
+                    ? 'bg-primary-500/40 dark:bg-primary-400/50 text-primary-900 dark:text-white border border-primary-600/60 dark:border-primary-300/50 font-semibold'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
+                style={authMethod === 'local' ? {
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                  boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), inset 0 -1px 2px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+                } : undefined}
               >
                 <Mail className="w-4 h-4 inline-block mr-2" />
                 Email
@@ -158,11 +161,16 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setAuthMethod('ldap')}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   authMethod === 'ldap'
-                    ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
+                    ? 'bg-primary-500/40 dark:bg-primary-400/50 text-primary-900 dark:text-white border border-primary-600/60 dark:border-primary-300/50 font-semibold'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
+                style={authMethod === 'ldap' ? {
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                  boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5), inset 0 -1px 2px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+                } : undefined}
               >
                 <Server className="w-4 h-4 inline-block mr-2" />
                 LDAP
@@ -247,10 +255,10 @@ function LoginForm() {
                     key={provider}
                     type="button"
                     onClick={() => handleOAuthLogin(provider)}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-center gap-3 btn-secondary"
                   >
                     {getOAuthIcon(provider)}
-                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">
                       {getOAuthLabel(provider)}
                     </span>
                   </button>

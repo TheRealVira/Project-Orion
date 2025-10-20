@@ -10,6 +10,14 @@ export interface Member {
   role?: 'admin' | 'user' | 'viewer';
   authProvider?: 'local' | 'oauth' | 'ldap';
   authProviderId?: string;
+  teamId?: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  latitude?: number;
+  longitude?: number;
+  locationSource?: 'manual' | 'oauth' | 'ldap' | 'auto';
+  locationUpdatedAt?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -201,4 +209,62 @@ export interface SLAStatus {
   isResolutionBreached: boolean;
   isResponseAtRisk: boolean; // true if > 80% of time elapsed
   isResolutionAtRisk: boolean; // true if > 80% of time elapsed
+}
+
+/**
+ * Type of insight for managers
+ */
+export type InsightType =
+  | 'timezone-coverage-gap'
+  | 'missing-timezone'
+  | 'missing-phone'
+  | 'missing-location'
+  | 'on-call-imbalance'
+  | 'member-overload'
+  | 'member-underutilized'
+  | 'sla-unrealistic'
+  | 'sla-timezone-mismatch'
+  | 'incident-trend-spike'
+  | 'incident-resolution-slow'
+  | 'critical-single-handler'
+  | 'holiday-coverage-gap';
+
+/**
+ * Represents actionable insights for team managers
+ */
+export interface Insight {
+  id: string;
+  type: InsightType;
+  category: 'Coverage' | 'Balance' | 'Configuration' | 'Capability' | 'Trends' | 'Data';
+  severity: 'critical' | 'warning' | 'info' | 'success';
+  title: string;
+  description: string;
+  details?: string;
+  metrics?: Array<{
+    label: string;
+    value: string | number;
+    trend?: 'up' | 'down' | 'neutral';
+    trendValue?: string;
+  }>;
+  suggestions: string[];
+  actions: Array<{
+    label: string;
+    actionId: string;
+    params?: Record<string, any>;
+  }>;
+  dismissible: boolean;
+  generatedAt: Date;
+  expiresAt?: Date;
+}
+
+/**
+ * Represents a dismissed or snoozed insight
+ */
+export interface InsightDismissal {
+  id: string;
+  userId: string;
+  teamId: string;
+  insightType: InsightType;
+  dismissedAt: Date;
+  snoozedUntil?: Date;
 }

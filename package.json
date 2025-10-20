@@ -8,39 +8,45 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "audit": "pnpm audit --audit-level=moderate",
+    "audit:fix": "pnpm audit --fix",
+    "security-check": "pnpm audit && pnpm outdated"
   },
   "dependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/ldapjs": "^3.0.6",
     "bcryptjs": "^3.0.2",
-    "better-sqlite3": "^12.4.1",
+    "better-sqlite3": "12.4.1",
     "date-fns": "^2.30.0",
     "ldapjs": "^3.0.7",
     "lucide-react": "^0.292.0",
-    "next": "^14.0.0",
-    "next-auth": "^5.0.0-beta.29",
+    "next": "^14.2.33",
     "nodemailer": "^7.0.9",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "recharts": "^3.2.1",
-    "twilio": "^5.10.2"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-simple-maps": "^1.0.0",
+    "recharts": "^3.3.0",
+    "twilio": "^5.10.3"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
+    "@types/d3-geo": "^3.1.0",
+    "@types/node": "^20.19.22",
     "@types/nodemailer": "^7.0.2",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.53.0",
-    "eslint-config-next": "^14.0.0",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2"
+    "@types/react": "^18.3.26",
+    "@types/react-dom": "^18.3.7",
+    "@types/react-simple-maps": "^3.0.6",
+    "autoprefixer": "^10.4.21",
+    "d3-geo": "^3.1.1",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.33",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.0.0",
-    "npm": ">=9.0.0"
+    "pnpm": ">=9.0.0"
   }
 }

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     `);
 
 
-    const { setTeamOwners } = require('@/lib/team-ownership');
+    const { setTeamOwners } = require('@/lib/utils/team-ownership');
     const transaction = db.transaction(() => {
       insertTeam.run(id, name, description || null, color, now, now);
       if (memberIds && Array.isArray(memberIds)) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/database';
 import { Incident, TeamSLASettings } from '@/types';
-import { calculateSLADeadline, getResponseTarget, getResolutionTarget } from '@/lib/sla';
+import { calculateSLADeadline, getResponseTarget, getResolutionTarget } from '@/lib/utils/sla';
 
 // GET /api/incidents - List all incidents
 export async function GET(request: NextRequest) {

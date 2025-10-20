@@ -16,6 +16,13 @@ interface User {
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  latitude?: number;
+  longitude?: number;
+  locationSource?: 'manual' | 'oauth' | 'ldap' | 'auto';
+  locationUpdatedAt?: string;
 }
 
 interface AuthContextType {

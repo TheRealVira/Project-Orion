@@ -1,7 +1,7 @@
 # ================================
 # Stage 1: Dependencies
 # ================================
-FROM node:20-alpine AS deps
+FROM node:alpine AS deps
 
 # Install build dependencies for native modules (better-sqlite3)
 RUN apk add --no-cache \
@@ -10,22 +10,29 @@ RUN apk add --no-cache \
     g++ \
     libc6-compat
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
 
 # Install dependencies
-RUN npm ci --legacy-peer-deps
+RUN pnpm install --frozen-lockfile
 
 # ================================
 # Stage 2: Builder
 # ================================
-FROM node:20-alpine AS builder
+FROM node:alpine AS builder
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 WORKDIR /app
 
 # Copy dependencies from deps stage
+COPY --from=deps /root/.pnpm-store /root/.pnpm-store
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
@@ -36,12 +43,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # ================================
 # Stage 3: Runner
 # ================================
-FROM node:20-alpine AS runner
+FROM node:alpine AS runner
 
 WORKDIR /app
 
