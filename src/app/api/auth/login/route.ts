@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateUser, createSession, seedAdminUser } from '@/lib/auth';
+import { authenticateUser, createSession } from '@/lib/auth';
 import { authenticateLDAP } from '@/lib/auth/auth-ldap';
 
-// Initialize admin user on first load
-seedAdminUser().catch(console.error);
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {

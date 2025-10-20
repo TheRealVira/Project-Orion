@@ -3,6 +3,9 @@ import { getOAuthConfigs, generateAuthorizationURL } from '@/lib/auth/auth-oauth
 import { isFeatureEnabled } from '@/lib/config';
 import crypto from 'crypto';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { provider: string } }

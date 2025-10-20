@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteSession } from '@/lib/auth';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('session_token')?.value;

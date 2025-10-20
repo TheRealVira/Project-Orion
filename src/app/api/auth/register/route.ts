@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionByToken, createUser } from '@/lib/auth';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 // POST /api/auth/register - Create a new local user (admin only)
 export async function POST(request: NextRequest) {
   try {

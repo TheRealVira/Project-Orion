@@ -3,6 +3,9 @@ import { getOAuthConfigs, handleOAuthCallback } from '@/lib/auth/auth-oauth';
 import { createSession } from '@/lib/auth';
 import appConfig, { isFeatureEnabled } from '@/lib/config';
 
+// Force dynamic rendering - this route needs runtime database access
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { provider: string } }
