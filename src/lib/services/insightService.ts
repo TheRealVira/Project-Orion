@@ -2,17 +2,28 @@ import { getDatabase } from '@/lib/database';
 import { Member, Team, Insight, InsightType } from '@/types';
 
 export class InsightService {
-  private db = getDatabase();
+  private db: any = null;
+
+  /**
+   * Get database instance (lazy initialization)
+   */
+  private getDb() {
+    if (!this.db) {
+      this.db = getDatabase();
+    }
+    return this.db;
+  }
 
   /**
    * Generate all applicable insights for a team
    */
   async generateInsights(teamId: string, userId?: string): Promise<Insight[]> {
     const insights: Insight[] = [];
+    const db = this.getDb();
 
     try {
       // Get team data
-      const team = this.db
+      const team = db
         .prepare('SELECT * FROM teams WHERE id = ?')
         .get(teamId) as any;
       if (!team) return [];
@@ -262,7 +273,7 @@ export class InsightService {
         .toISOString()
         .split('T')[0];
 
-      const assignments = this.db
+      const assignments = this.getDb()
         .prepare(
           `SELECT au.userId, COUNT(*) as count FROM assignment_users au
          INNER JOIN date_assignments da ON au.assignmentId = da.id
@@ -369,7 +380,7 @@ export class InsightService {
     const insights: Insight[] = [];
 
     try {
-      const slaSettings = this.db
+      const slaSettings = this.getDb()
         .prepare(
           'SELECT * FROM team_sla_settings WHERE teamId = ? AND enabled = 1'
         )
@@ -456,14 +467,14 @@ export class InsightService {
         .split('T')[0];
 
       // Get incident counts
-      const incidentsThis7Days = this.db
+      const incidentsThis7Days = this.getDb()
         .prepare(
           `SELECT COUNT(*) as count FROM incidents 
          WHERE teamId = ? AND createdAt >= ?`
         )
         .get(teamId, sevenDaysAgo) as any;
 
-      const incidentsLast7Days = this.db
+      const incidentsLast7Days = this.getDb()
         .prepare(
           `SELECT COUNT(*) as count FROM incidents 
          WHERE teamId = ? AND createdAt >= ? AND createdAt < ?`
@@ -509,7 +520,7 @@ export class InsightService {
       }
 
       // Check for SLA breaches
-      const breachedIncidents = this.db
+      const breachedIncidents = this.getDb()
         .prepare(
           `SELECT COUNT(*) as count FROM incidents 
          WHERE teamId = ? AND (slaResponseBreached = 1 OR slaResolutionBreached = 1)
@@ -564,7 +575,7 @@ export class InsightService {
    */
   private getTeamMembers(teamId: string): Member[] {
     try {
-      const result = this.db
+      const result = this.getDb()
         .prepare(
           `SELECT u.* FROM users u 
          INNER JOIN team_members tm ON u.id = tm.userId 
